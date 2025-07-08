@@ -25,6 +25,9 @@ logging.basicConfig(
     ]
 )
 
+import time
+)
+
 def validate_critical_services(app):
     """Validate that critical services are available"""
     with app.app_context():
