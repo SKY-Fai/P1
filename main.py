@@ -20,8 +20,10 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(levelname)s %(name)s %(message)s',
     handlers=[
-
-import time
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler('logs/app.log') if os.path.exists('logs') else logging.StreamHandler()
+    ]
+)
 
 def validate_critical_services(app):
     """Validate that critical services are available"""
