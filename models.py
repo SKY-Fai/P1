@@ -477,3 +477,115 @@ class FinancialReport(db.Model):
     
     # Relationships
     generated_by_user = relationship("User")
+
+class FileStorageMetadata(db.Model):
+    """File metadata for GCS Object Storage integration"""
+    __tablename__ = 'file_storage_metadata'
+    
+    id = Column(Integer, primary_key=True)
+    
+    # File identification
+    file_path = Column(String(1000), nullable=False, unique=True)
+    original_filename = Column(String(500), nullable=False)
+    secure_filename = Column(String(500), nullable=False)
+    file_hash = Column(String(64), nullable=False)
+    
+    # File properties
+    file_size = Column(Integer, nullable=False)
+    mime_type = Column(String(200))
+    content_type = Column(String(200))
+    file_extension = Column(String(10))
+    
+    # Ownership and organization
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    organization_id = Column(Integer, ForeignKey('companies.id'), nullable=True)
+    
+    # Classification and categorization
+    file_category = Column(String(50), nullable=False, default='other')
+    file_type = Column(String(50))  # invoice, receipt, bank_statement, report, template
+    document_classification = Column(Text)  # JSON string for AI classification results
+    
+    # Storage and access
+    storage_bucket = Column(String(200), nullable=False, default='fai-accountant-storage')
+    storage_region = Column(String(50), default='us-central1')
+    signed_url_expires_at = Column(DateTime)
+    
+    # Version control
+    version = Column(Integer, nullable=False, default=1)
+    is_current_version = Column(Boolean, default=True)
+    parent_file_id = Column(Integer, ForeignKey('file_storage_metadata.id'))
+    
+    # Timestamps
+    upload_timestamp = Column(DateTime, nullable=False, default=datetime.utcnow)
+    last_accessed_at = Column(DateTime)
+    last_modified_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Security and compliance
+    encryption_key_id = Column(String(200))
+    is_encrypted = Column(Boolean, default=True)
+    retention_until = Column(DateTime)
+    compliance_flags = Column(Text)  # JSON string for compliance flags
+    
+    # Processing status
+    processing_status = Column(String(50), default='uploaded')
+    processing_results = Column(Text)  # JSON string
+    ocr_extracted_text = Column(Text)
+    
+    # Access control
+    access_level = Column(String(50), default='private')
+    shared_with = Column(Text)  # JSON array of user IDs
+    
+    # Audit and monitoring
+    download_count = Column(Integer, default=0)
+    last_downloaded_by = Column(Integer, ForeignKey('users.id'))
+    last_downloaded_at = Column(DateTime)
+    
+    # Deletion and archival
+    is_deleted = Column(Boolean, default=False)
+    deleted_at = Column(DateTime)
+    deleted_by = Column(Integer, ForeignKey('users.id'))
+    archive_status = Column(String(50), default='active')
+    
+    # Additional metadata
+    tags = Column(Text)  # JSON array
+    notes = Column(Text)
+    business_metadata = Column(Text)  # JSON object
+    
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id])
+    organization = relationship("Company", foreign_keys=[organization_id])
+    parent_file = relationship("FileStorageMetadata", remote_side=[id])
+    last_downloaded_by_user = relationship("User", foreign_keys=[last_downloaded_by])
+    deleted_by_user = relationship("User", foreign_keys=[deleted_by])
+
+class FileAccessAudit(db.Model):
+    """Audit trail for file access operations"""
+    __tablename__ = 'file_access_audit'
+    
+    id = Column(Integer, primary_key=True)
+    file_id = Column(Integer, ForeignKey('file_storage_metadata.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    
+    # Access details
+    operation = Column(String(50), nullable=False)  # upload, download, delete, view, share
+    access_timestamp = Column(DateTime, nullable=False, default=datetime.utcnow)
+    ip_address = Column(String(45))
+    user_agent = Column(Text)
+    
+    # Request details
+    request_method = Column(String(10))
+    request_path = Column(String(500))
+    response_status = Column(Integer)
+    
+    # Success/failure
+    success = Column(Boolean, default=True)
+    error_message = Column(Text)
+    
+    # Additional context
+    session_id = Column(String(100))
+    api_endpoint = Column(String(200))
+    access_context = Column(Text)  # JSON string
+    
+    # Relationships
+    file_metadata = relationship("FileStorageMetadata")
+    user = relationship("User")

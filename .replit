@@ -1,37 +1,33 @@
-modules = ["python-3.12", "web", "nodejs-20"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["glibcLocales"]
 
-[workflows]
-runButton = "Run"
+[deployment]
+run = ["sh", "-c", "python main.py"]
 
-[[workflows.workflow]]
-name = "Run"
-author = 44663263
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python main.py"
-
-[[workflows.workflow]]
-name = "Deploy"
-author = 44663263
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python deploy.py"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python main.py"
+[objectStorage]
+defaultBucketID = "fai-accountant-storage"
 
 [[ports]]
 localPort = 5000
 externalPort = 80
+exposeLocalhost = true
 
-[deployment]
-run = ["sh", "-c", "python main.py"]
+[env]
+PYTHONPATH = "$REPL_HOME"
+FLASK_ENV = "production"
+FLASK_APP = "main.py"
+
+# GCP Storage Configuration
+GCS_BUCKET_NAME = "fai-accountant-storage"
+GCS_PROJECT_ID = "replit-gcs-project"
+GCS_REGION = "us-central1"
+
+# Security Configuration  
+SECRET_KEY = "your-secret-key-here"
+DATABASE_URL = "sqlite:///database/fai_accountant.db"
+
+# Compliance and Audit
+AUDIT_LOGGING_ENABLED = "true"
+RETENTION_DAYS = "2555"
+ENCRYPTION_ENABLED = "true"
