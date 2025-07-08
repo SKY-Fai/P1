@@ -33,12 +33,25 @@ RETENTION_DAYS = "2555"
 ENCRYPTION_ENABLED = "true"
 
 [workflows]
-runButton = "F-AI Accountant Server"
+runButton = "Deploy Production"
 
 [[workflows.workflow]]
 name = "F-AI Accountant Server"
 author = 44663263
 mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
+
+[[workflows.workflow]]
+name = "Deploy Production"
+author = 44663263
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python replit_deployment.py"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
