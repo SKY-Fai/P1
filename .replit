@@ -1,3 +1,4 @@
+modules = ["python-3.11"]
 
 [nix]
 channel = "stable-24_05"
@@ -61,10 +62,6 @@ args = "python main.py"
 name = "F-AI Accountant Production"
 author = 44663263
 mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python3 replit_deployment.py"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
