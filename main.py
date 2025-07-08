@@ -34,14 +34,14 @@ def validate_critical_services(app):
             # Test database connectivity
             db.session.execute('SELECT 1')
             logging.info("✓ Database connectivity verified")
-            
+
             # Test file system permissions
             test_file = 'uploads/.test_write'
             with open(test_file, 'w') as f:
                 f.write('test')
             os.remove(test_file)
             logging.info("✓ File system write permissions verified")
-            
+
             # Test GCP storage if enabled
             if app.config.get('USE_GCP_STORAGE'):
                 try:
@@ -53,7 +53,7 @@ def validate_critical_services(app):
                         logging.warning("⚠ GCP Storage service not available")
                 except Exception as e:
                     logging.warning(f"⚠ GCP Storage validation failed: {e}")
-                    
+
         except Exception as e:
             logging.error(f"Critical service validation failed: {e}")
             raise
@@ -117,7 +117,7 @@ def create_production_app():
         validate_critical_services(app)
 
         return app
-        
+
     except Exception as e:
         logging.critical(f"Failed to create production app: {e}")
         raise
@@ -151,7 +151,7 @@ def health_check():
         "timestamp": datetime.now().isoformat(),
         "checks": {}
     }
-    
+
     try:
         # Database connectivity check
         start_time = time.time()
@@ -161,7 +161,7 @@ def health_check():
             "status": "healthy",
             "response_time_ms": round(db_response_time, 2)
         }
-        
+
         # File system check
         try:
             test_file = 'uploads/.health_check'
@@ -172,7 +172,7 @@ def health_check():
         except Exception as e:
             health_status["checks"]["filesystem"] = {"status": "unhealthy", "error": str(e)}
             health_status["status"] = "degraded"
-        
+
         # GCP Storage check (if enabled)
         if app.config.get('USE_GCP_STORAGE'):
             try:
@@ -186,15 +186,15 @@ def health_check():
             except Exception as e:
                 health_status["checks"]["gcp_storage"] = {"status": "unhealthy", "error": str(e)}
                 health_status["status"] = "degraded"
-        
+
         # Overall status determination
         failed_checks = [check for check in health_status["checks"].values() if check["status"] != "healthy"]
         if failed_checks:
             health_status["status"] = "degraded" if len(failed_checks) < len(health_status["checks"]) else "unhealthy"
-        
+
         status_code = 200 if health_status["status"] == "healthy" else 503
         return health_status, status_code
-        
+
     except Exception as e:
         logging.error(f"Health check failed: {e}")
         return {
@@ -229,7 +229,7 @@ if __name__ == "__main__":
         try:
             import gunicorn
             import subprocess
-            
+
             gunicorn_cmd = [
                 sys.executable, "-m", "gunicorn",
                 "--bind", f"{host}:{port}",
@@ -247,7 +247,7 @@ if __name__ == "__main__":
 
             logging.info(f"Starting Gunicorn server on {host}:{port}")
             subprocess.run(gunicorn_cmd, check=True)
-            
+
         except (ImportError, subprocess.CalledProcessError) as e:
             logging.warning(f"Gunicorn unavailable or failed: {e}")
             logging.info(f"Falling back to Flask development server on {host}:{port}")

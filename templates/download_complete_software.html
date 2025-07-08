@@ -1,0 +1,109 @@
+
+{% extends "base.html" %}
+
+{% block title %}Download F-AI Accountant Enterprise{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-download me-2"></i>
+                        Download F-AI Accountant Enterprise v2.0.0
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h4>Complete Enterprise Accounting Platform</h4>
+                            <p class="lead">Download the complete F-AI Accountant Enterprise package with all features and components.</p>
+                            
+                            <h5>What's Included:</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success me-2"></i>AI-Powered Accounting Engine</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Manual Journal Management</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Advanced Bank Reconciliation</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Financial Report Generation</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Template Management System</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success me-2"></i>User Management & Permissions</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Multi-format Export (Excel, PDF, Word)</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Professional Workflow Management</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Complete Documentation</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Docker Configuration</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <h5>System Requirements:</h5>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-info-circle text-info me-2"></i>Python 3.8+ (automatically checked during setup)</li>
+                                <li><i class="fas fa-info-circle text-info me-2"></i>2GB RAM minimum (8GB recommended)</li>
+                                <li><i class="fas fa-info-circle text-info me-2"></i>10GB storage space</li>
+                                <li><i class="fas fa-info-circle text-info me-2"></i>Modern web browser</li>
+                            </ul>
+                            
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-rocket me-2"></i>One-Click Setup</h6>
+                                <p class="mb-0">The package includes automated setup scripts for Windows, Linux, and Mac. Just run <code>python setup.py</code> for automatic installation and configuration.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5>Ready to Download?</h5>
+                                    <p class="text-muted">Complete package ~50MB</p>
+                                    
+                                    <a href="{{ url_for('main.download_complete_software') }}" class="btn btn-primary btn-lg mb-3">
+                                        <i class="fas fa-download me-2"></i>
+                                        Download Complete Package
+                                    </a>
+                                    
+                                    <hr>
+                                    
+                                    <h6>Alternative Sources</h6>
+                                    <a href="https://github.com/SKY-Fai/P1" target="_blank" class="btn btn-outline-dark btn-sm mb-2">
+                                        <i class="fab fa-github me-2"></i>
+                                        View on GitHub
+                                    </a>
+                                    
+                                    <br>
+                                    
+                                    <a href="{{ url_for('main.software_info') }}" target="_blank" class="btn btn-outline-info btn-sm">
+                                        <i class="fas fa-info me-2"></i>
+                                        API Information
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>Quick Start Instructions:</h5>
+                            <ol>
+                                <li>Download and extract the ZIP package</li>
+                                <li>Open terminal/command prompt in the extracted folder</li>
+                                <li>Run: <code>python setup.py</code> (automated setup)</li>
+                                <li>Start application: <code>python main.py</code></li>
+                                <li>Access: <a href="http://localhost:5000" target="_blank">http://localhost:5000</a></li>
+                                <li>Login: <strong>admin</strong> / <strong>test</strong></li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
