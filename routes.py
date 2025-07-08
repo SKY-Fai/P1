@@ -2468,6 +2468,24 @@ def api_suggest_account_mapping():
     except Exception as e:
         return jsonify({'error': f'Error suggesting account mapping: {str(e)}'}), 500
 
+@main_bp.route('/api/log-error', methods=['POST'])
+def api_log_error():
+    """Handle frontend error logging"""
+    try:
+        data = request.get_json()
+        error_message = data.get('message', 'Unknown error')
+        error_details = data.get('details', {})
+        
+        # Log the error (you can enhance this with proper logging)
+        print(f"Frontend Error: {error_message}")
+        if error_details:
+            print(f"Error Details: {error_details}")
+        
+        return jsonify({'status': 'logged'}), 200
+    except Exception as e:
+        print(f"Error logging frontend error: {str(e)}")
+        return jsonify({'status': 'error'}), 500
+
 @main_bp.route('/api/bank-reconciliation/manual-map', methods=['POST'])
 @login_required
 def api_manual_map_transaction():

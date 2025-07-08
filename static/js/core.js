@@ -61,7 +61,7 @@
                 console.error(`[F-AI Error] ${context}:`, error);
                 this.handlers.forEach(handler => handler(error, context));
             },
-            
+
             addHandler: function(handler) {
                 if (typeof handler === 'function') {
                     this.handlers.push(handler);
@@ -117,41 +117,56 @@
 
         // API utilities
         api: {
-            request: function(url, options = {}) {
-                const defaults = {
+            request: async function(url, options = {}) {
+                const defaultOptions = {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': FaiCore.config.csrfToken
+                        'X-Requested-With': 'XMLHttpRequest'
                     }
                 };
 
-                const config = Object.assign({}, defaults, options);
-                
-                return fetch(url, config)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                        }
-                        return response.json();
-                    })
-                    .catch(error => {
-                        FaiCore.errors.log(error, 'API request');
-                        throw error;
+                const config = { ...defaultOptions, ...options };
+
+                try {
+                    const response = await fetch(url, config);
+                    const data = await response.json();
+                    return { success: response.ok, data, status: response.status };
+                } catch (error) {
+                    console.error('[F-AI Error] API request:', error);
+                    // Only log critical errors, not every failed request
+                    if (error.message !== 'Failed to fetch') {
+                        this.logError('API Request Failed', { url, error: error.message });
+                    }
+                    return { success: false, error: error.message, status: 0 };
+                }
+            },
+
+            logError: async function(message, details = {}) {
+                // Prevent infinite loops by checking if we're already logging an error
+                if (this._isLoggingError) return;
+
+                this._isLoggingError = true;
+
+                try {
+                    await fetch('/api/log-error', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: message,
+                            details: details,
+                            timestamp: new Date().toISOString()
+                        })
                     });
+                } catch (e) {
+                    // Silently fail to prevent console spam
+                } finally {
+                    this._isLoggingError = false;
+                }
             },
 
-            get: function(url, options = {}) {
-                return this.request(url, { ...options, method: 'GET' });
-            },
-
-            post: function(url, data, options = {}) {
-                return this.request(url, {
-                    ...options,
-                    method: 'POST',
-                    body: JSON.stringify(data)
-                });
-            }
         },
 
         // Utility functions
@@ -226,7 +241,7 @@
                     this.bindGlobalEvents();
                     this.setupErrorHandling();
                     this.state.initialized = true;
-                    
+
                     console.log(`✅ F-AI Core v${this.config.version} initialized successfully`);
                 } catch (error) {
                     this.errors.log(error, 'Core initialization');
