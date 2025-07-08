@@ -16,6 +16,22 @@ mode = "sequential"
 task = "shell.exec"
 args = "python main.py"
 
+[[workflows.workflow]]
+name = "Deploy"
+author = 44663263
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python deploy.py"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[deployment]
+run = ["sh", "-c", "python main.py"]
