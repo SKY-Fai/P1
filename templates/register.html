@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Register - F-AI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg">
+            <div class="card-header text-center">
+                <div class="d-flex align-items-center justify-content-center mb-2">
+                    <img src="{{ url_for('static', filename='images/f-ai-logo.png') }}" alt="F-AI Logo" class="login-logo">
+                    <h3 class="mb-0 f-ai-brand">Create Account</h3>
+                </div>
+                <p class="text-muted mb-0">Join F-AI Platform</p>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('auth.register') }}">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="first_name" class="form-label">
+                                    <i class="fas fa-user me-1"></i>First Name
+                                </label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="last_name" class="form-label">
+                                    <i class="fas fa-user me-1"></i>Last Name
+                                </label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">
+                            <i class="fas fa-at me-1"></i>Username
+                        </label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope me-1"></i>Email Address
+                        </label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="role" class="form-label">
+                            <i class="fas fa-user-tag me-1"></i>Role
+                        </label>
+                        <select class="form-select" id="role" name="role">
+                            <option value="viewer">Viewer</option>
+                            <option value="accountant">Accountant</option>
+                            <option value="auditor">Auditor</option>
+                            <option value="ca">Chartered Accountant</option>
+                            <option value="client_success">Client Success</option>
+                            <option value="legal">Legal</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="password" class="form-label">
+                                    <i class="fas fa-lock me-1"></i>Password
+                                </label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                                <div class="form-text">Minimum 8 characters</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="confirm_password" class="form-label">
+                                    <i class="fas fa-lock me-1"></i>Confirm Password
+                                </label>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-user-plus me-1"></i>Create Account
+                    </button>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p class="mb-0">Already have an account? 
+                        <a href="{{ url_for('auth.login') }}" class="text-decoration-none">Login here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.main-content {
+    padding-top: 100px;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid var(--bs-border-color);
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.form-control, .form-select {
+    border-radius: 10px;
+    padding: 12px 15px;
+}
+
+.btn-primary {
+    border-radius: 10px;
+    padding: 12px;
+    font-weight: 600;
+}
+</style>
+{% endblock %}

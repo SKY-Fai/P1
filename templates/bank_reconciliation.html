@@ -1,0 +1,729 @@
+{% extends "base.html" %}
+
+{% block title %}Bank Reconciliation - F-AI Accountant{% endblock %}
+
+{% block extra_head %}
+    <style>
+        .reconciliation-card {
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .reconciliation-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-matched {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-partial {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .status-unmatched {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .bank-account-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .transaction-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .amount-credit {
+            color: #28a745;
+            font-weight: 600;
+        }
+        .amount-debit {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        .confidence-score {
+            display: inline-block;
+            width: 50px;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            position: relative;
+            margin-right: 10px;
+        }
+        .confidence-score::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #dc3545, #ffc107, #28a745);
+        }
+        .mapping-modal .form-control {
+            margin-bottom: 15px;
+        }
+        .tab-content {
+            padding: 20px;
+            background: white;
+            border-radius: 0 0 10px 10px;
+        }
+        .nav-tabs {
+            border-bottom: 2px solid #dee2e6;
+        }
+        .nav-tabs .nav-link {
+            border: none;
+            color: #495057;
+            padding: 12px 20px;
+            margin-bottom: -2px;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-tabs .nav-link.active {
+            background: none;
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+        }
+        .summary-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .kyc-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-university me-2"></i>Bank Reconciliation
+                    </h1>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadStatementModal">
+                        <i class="fas fa-upload me-2"></i>Upload Statement
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card reconciliation-card">
+                    <div class="card-body text-center">
+                        <div class="h2 mb-2 text-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h5 class="card-title">Matched</h5>
+                        <p class="card-text h4 text-success" id="matchedCount">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card reconciliation-card">
+                    <div class="card-body text-center">
+                        <div class="h2 mb-2 text-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h5 class="card-title">Partial Match</h5>
+                        <p class="card-text h4 text-warning" id="partialCount">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card reconciliation-card">
+                    <div class="card-body text-center">
+                        <div class="h2 mb-2 text-danger">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <h5 class="card-title">Unmatched</h5>
+                        <p class="card-text h4 text-danger" id="unmatchedCount">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card reconciliation-card">
+                    <div class="card-body text-center">
+                        <div class="h2 mb-2 text-info">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <h5 class="card-title">Reconciliation Rate</h5>
+                        <p class="card-text h4 text-info" id="reconciliationRate">0%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KYC and Bank Info -->
+        <div class="row mb-4" id="bankInfoSection" style="display: none;">
+            <div class="col-md-6">
+                <div class="kyc-info">
+                    <h6><i class="fas fa-building me-2"></i>KYC Information</h6>
+                    <div id="kycDetails">
+                        <!-- KYC details will be populated here -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="kyc-info">
+                    <h6><i class="fas fa-university me-2"></i>Bank Account Details</h6>
+                    <div id="bankDetails">
+                        <!-- Bank details will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reconciliation Tabs -->
+        <div class="row">
+            <div class="col-12">
+                <ul class="nav nav-tabs" id="reconciliationTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="matched-tab" data-bs-toggle="tab" data-bs-target="#matched" type="button" role="tab">
+                            <i class="fas fa-check-circle me-2"></i>Matched <span class="badge bg-success ms-2" id="matchedBadge">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="partial-tab" data-bs-toggle="tab" data-bs-target="#partial" type="button" role="tab">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Partial <span class="badge bg-warning ms-2" id="partialBadge">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="unmatched-tab" data-bs-toggle="tab" data-bs-target="#unmatched" type="button" role="tab">
+                            <i class="fas fa-times-circle me-2"></i>Unmatched <span class="badge bg-danger ms-2" id="unmatchedBadge">0</span>
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content transaction-table" id="reconciliationTabContent">
+                    <div class="tab-pane fade show active" id="matched" role="tabpanel">
+                        <table class="table table-hover" id="matchedTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Reference</th>
+                                    <th>Matched Entry</th>
+                                    <th>Confidence</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div class="tab-pane fade" id="partial" role="tabpanel">
+                        <table class="table table-hover" id="partialTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Reference</th>
+                                    <th>Suggestions</th>
+                                    <th>Confidence</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div class="tab-pane fade" id="unmatched" role="tabpanel">
+                        <table class="table table-hover" id="unmatchedTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Reference</th>
+                                    <th>Category</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Process Button -->
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <button class="btn btn-success btn-lg" id="processReconciliation" style="display: none;">
+                    <i class="fas fa-cogs me-2"></i>Process All Mapped Transactions
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Statement Modal -->
+    <div class="modal fade" id="uploadStatementModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-upload me-2"></i>Upload Bank Statement
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="uploadStatementForm" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Bank Statement File</label>
+                                <input type="file" class="form-control" id="statementFile" accept=".xlsx,.xls,.csv" required>
+                                <div class="form-text">Upload Excel (.xlsx, .xls) or CSV file</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Statement Period</label>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <input type="date" class="form-control" id="fromDate" placeholder="From Date">
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="date" class="form-control" id="toDate" placeholder="To Date">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Bank Name</label>
+                                <select class="form-select" id="bankName" required>
+                                    <option value="">Select Bank</option>
+                                    <option value="HDFC Bank">HDFC Bank</option>
+                                    <option value="ICICI Bank">ICICI Bank</option>
+                                    <option value="SBI">State Bank of India</option>
+                                    <option value="Axis Bank">Axis Bank</option>
+                                    <option value="Kotak Bank">Kotak Mahindra Bank</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Account Type</label>
+                                <select class="form-select" id="accountType" required>
+                                    <option value="">Select Type</option>
+                                    <option value="Savings">Savings Account</option>
+                                    <option value="Current">Current Account</option>
+                                    <option value="Overdraft">Overdraft Account</option>
+                                    <option value="Fixed Deposit">Fixed Deposit</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Account Number</label>
+                                <input type="text" class="form-control" id="accountNumber" placeholder="Account Number">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">IFSC Code</label>
+                                <input type="text" class="form-control" id="ifscCode" placeholder="IFSC Code">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="uploadStatement">
+                        <i class="fas fa-upload me-2"></i>Upload & Process
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Mapping Modal -->
+    <div class="modal fade" id="manualMappingModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-map me-2"></i>Manual Transaction Mapping
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-university me-2"></i>Transaction Details</h6>
+                            <div class="bg-light p-3 rounded mb-3">
+                                <div id="transactionDetails">
+                                    <!-- Transaction details will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-cogs me-2"></i>Mapping Configuration</h6>
+                            <form id="mappingForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Ledger Account</label>
+                                    <select class="form-select" id="ledgerAccount" required>
+                                        <option value="">Select Account</option>
+                                        <option value="4100">Sales Revenue</option>
+                                        <option value="5100">Purchase</option>
+                                        <option value="6100">Salaries & Wages</option>
+                                        <option value="6200">Rent Expense</option>
+                                        <option value="6300">Utilities</option>
+                                        <option value="6400">Office Expenses</option>
+                                        <option value="7100">Interest Income</option>
+                                        <option value="7200">Other Income</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Description</label>
+                                    <input type="text" class="form-control" id="entryDescription" placeholder="Journal entry description">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Reference</label>
+                                    <input type="text" class="form-control" id="entryReference" placeholder="Reference number">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Transaction Type</label>
+                                    <select class="form-select" id="transactionType" required>
+                                        <option value="">Select Type</option>
+                                        <option value="sales">Sales Receipt</option>
+                                        <option value="purchase">Purchase Payment</option>
+                                        <option value="expense">Expense Payment</option>
+                                        <option value="income">Income Receipt</option>
+                                        <option value="transfer">Transfer</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="saveMapping">
+                        <i class="fas fa-save me-2"></i>Save Mapping
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            let currentTransactionId = null;
+            let reconciliationData = null;
+            let mappedTransactions = [];
+            
+            // Initialize DataTables
+            const tableOptions = {
+                responsive: true,
+                pageLength: 10,
+                order: [[0, 'desc']],
+                language: {
+                    emptyTable: "No transactions to display"
+                }
+            };
+            
+            const matchedTable = $('#matchedTable').DataTable(tableOptions);
+            const partialTable = $('#partialTable').DataTable(tableOptions);
+            const unmatchedTable = $('#unmatchedTable').DataTable(tableOptions);
+            
+            // Upload Statement
+            $('#uploadStatement').click(function() {
+                const formData = new FormData();
+                const file = $('#statementFile')[0].files[0];
+                
+                if (!file) {
+                    alert('Please select a file to upload.');
+                    return;
+                }
+                
+                formData.append('statement_file', file);
+                formData.append('bank_name', $('#bankName').val());
+                formData.append('account_type', $('#accountType').val());
+                formData.append('account_number', $('#accountNumber').val());
+                formData.append('ifsc_code', $('#ifscCode').val());
+                formData.append('from_date', $('#fromDate').val());
+                formData.append('to_date', $('#toDate').val());
+                
+                // Add KYC data (would be retrieved from user profile)
+                formData.append('kyc_data', JSON.stringify({
+                    full_name: 'John Doe',
+                    business_name: 'ABC Corporation',
+                    gst_number: '12ABCDE3456F7GH',
+                    pan_number: 'ABCDE1234F',
+                    address: {
+                        street: '123 Business Street',
+                        city: 'Mumbai',
+                        state: 'Maharashtra',
+                        pincode: '400001'
+                    }
+                }));
+                
+                $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Processing...');
+                
+                $.ajax({
+                    url: '/api/bank-reconciliation/process',
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            reconciliationData = response;
+                            displayReconciliationData(response);
+                            $('#uploadStatementModal').modal('hide');
+                            resetUploadForm();
+                        } else {
+                            alert('Error processing statement: ' + response.error);
+                        }
+                    },
+                    error: function() {
+                        alert('Error uploading statement. Please try again.');
+                    },
+                    complete: function() {
+                        $('#uploadStatement').prop('disabled', false).html('<i class="fas fa-upload me-2"></i>Upload & Process');
+                    }
+                });
+            });
+            
+            function displayReconciliationData(data) {
+                // Update summary cards
+                $('#matchedCount').text(data.matched_count);
+                $('#partialCount').text(data.partial_count);
+                $('#unmatchedCount').text(data.unmatched_count);
+                $('#reconciliationRate').text(data.reconciliation_summary.reconciliation_rate.toFixed(1) + '%');
+                
+                // Update badges
+                $('#matchedBadge').text(data.matched_count);
+                $('#partialBadge').text(data.partial_count);
+                $('#unmatchedBadge').text(data.unmatched_count);
+                
+                // Display KYC and bank info
+                displayBankInfo(data);
+                
+                // Populate transaction tables
+                populateTransactionTables(data.transactions);
+                
+                // Show process button if there are mapped transactions
+                if (data.unmatched_count > 0) {
+                    $('#processReconciliation').show();
+                }
+            }
+            
+            function displayBankInfo(data) {
+                const kycHtml = `
+                    <p><strong>Business Name:</strong> ${data.bank_info.business_name || 'N/A'}</p>
+                    <p><strong>Account Holder:</strong> ${data.bank_info.account_holder}</p>
+                    <p><strong>GST Number:</strong> ${data.bank_info.gst_number || 'N/A'}</p>
+                    <p><strong>PAN Number:</strong> ${data.bank_info.pan_number || 'N/A'}</p>
+                `;
+                
+                const bankHtml = `
+                    <p><strong>Bank:</strong> ${data.bank_info.bank_name}</p>
+                    <p><strong>Account Number:</strong> ${data.bank_info.account_number}</p>
+                    <p><strong>Account Type:</strong> ${data.bank_info.account_type}</p>
+                    <p><strong>IFSC Code:</strong> ${data.bank_info.ifsc_code}</p>
+                `;
+                
+                $('#kycDetails').html(kycHtml);
+                $('#bankDetails').html(bankHtml);
+                $('#bankInfoSection').show();
+            }
+            
+            function populateTransactionTables(transactions) {
+                // Clear existing data
+                matchedTable.clear();
+                partialTable.clear();
+                unmatchedTable.clear();
+                
+                // Populate matched transactions
+                transactions.matched.forEach(function(result) {
+                    const tx = result.transaction;
+                    const match = result.matched_entries[0];
+                    
+                    matchedTable.row.add([
+                        formatDate(tx.date),
+                        tx.description,
+                        formatAmount(tx.amount),
+                        tx.reference,
+                        match.entry.description,
+                        formatConfidence(result.confidence_score),
+                        `<button class="btn btn-sm btn-outline-primary" onclick="viewDetails('${tx.transaction_id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>`
+                    ]);
+                });
+                
+                // Populate partial match transactions
+                transactions.partial.forEach(function(result) {
+                    const tx = result.transaction;
+                    const suggestions = result.suggested_mappings.slice(0, 2);
+                    
+                    partialTable.row.add([
+                        formatDate(tx.date),
+                        tx.description,
+                        formatAmount(tx.amount),
+                        tx.reference,
+                        suggestions.map(s => s.suggested_account || s.entry.description).join(', '),
+                        formatConfidence(result.confidence_score),
+                        `<button class="btn btn-sm btn-warning" onclick="openMappingModal('${tx.transaction_id}', ${JSON.stringify(tx).replace(/"/g, '&quot;')})">
+                            <i class="fas fa-map"></i> Map
+                        </button>`
+                    ]);
+                });
+                
+                // Populate unmatched transactions
+                transactions.unmatched.forEach(function(result) {
+                    const tx = result.transaction;
+                    
+                    unmatchedTable.row.add([
+                        formatDate(tx.date),
+                        tx.description,
+                        formatAmount(tx.amount),
+                        tx.reference,
+                        tx.category || 'Uncategorized',
+                        `<button class="btn btn-sm btn-danger" onclick="openMappingModal('${tx.transaction_id}', ${JSON.stringify(tx).replace(/"/g, '&quot;')})">
+                            <i class="fas fa-map"></i> Map
+                        </button>`
+                    ]);
+                });
+                
+                // Draw tables
+                matchedTable.draw();
+                partialTable.draw();
+                unmatchedTable.draw();
+            }
+            
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString();
+            }
+            
+            function formatAmount(amount) {
+                const num = parseFloat(amount);
+                const className = num >= 0 ? 'amount-credit' : 'amount-debit';
+                return `<span class="${className}">₹${Math.abs(num).toLocaleString()}</span>`;
+            }
+            
+            function formatConfidence(score) {
+                const percentage = Math.round(score * 100);
+                return `<div class="confidence-score" style="--confidence: ${percentage}%"></div>${percentage}%`;
+            }
+            
+            // Global functions for button clicks
+            window.openMappingModal = function(transactionId, transactionData) {
+                currentTransactionId = transactionId;
+                const tx = JSON.parse(transactionData.replace(/&quot;/g, '"'));
+                
+                const detailsHtml = `
+                    <p><strong>Date:</strong> ${formatDate(tx.date)}</p>
+                    <p><strong>Description:</strong> ${tx.description}</p>
+                    <p><strong>Amount:</strong> ${formatAmount(tx.amount)}</p>
+                    <p><strong>Reference:</strong> ${tx.reference}</p>
+                    <p><strong>Type:</strong> ${tx.transaction_type}</p>
+                `;
+                
+                $('#transactionDetails').html(detailsHtml);
+                $('#entryDescription').val(tx.description);
+                $('#entryReference').val(tx.reference);
+                
+                $('#manualMappingModal').modal('show');
+            };
+            
+            window.viewDetails = function(transactionId) {
+                // Implementation for viewing transaction details
+                console.log('View details for transaction:', transactionId);
+            };
+            
+            // Save mapping
+            $('#saveMapping').click(function() {
+                const mappingData = {
+                    transaction_id: currentTransactionId,
+                    ledger_account: $('#ledgerAccount').val(),
+                    description: $('#entryDescription').val(),
+                    reference: $('#entryReference').val(),
+                    transaction_type: $('#transactionType').val()
+                };
+                
+                if (!mappingData.ledger_account || !mappingData.transaction_type) {
+                    alert('Please fill in all required fields.');
+                    return;
+                }
+                
+                // Add to mapped transactions
+                mappedTransactions.push(mappingData);
+                
+                // Update UI
+                alert('Transaction mapped successfully!');
+                $('#manualMappingModal').modal('hide');
+                
+                // Show process button
+                $('#processReconciliation').show();
+            });
+            
+            // Process all mapped transactions
+            $('#processReconciliation').click(function() {
+                if (mappedTransactions.length === 0) {
+                    alert('No transactions have been mapped yet.');
+                    return;
+                }
+                
+                $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Processing...');
+                
+                $.ajax({
+                    url: '/api/bank-reconciliation/process-mapped',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        mapped_transactions: mappedTransactions
+                    }),
+                    success: function(response) {
+                        if (response.success) {
+                            alert(`Successfully processed ${response.processed_count} transactions. Journal entries have been created and merged with main reports.`);
+                            // Refresh the page or update UI
+                            location.reload();
+                        } else {
+                            alert('Error processing transactions: ' + response.error);
+                        }
+                    },
+                    error: function() {
+                        alert('Error processing transactions. Please try again.');
+                    },
+                    complete: function() {
+                        $('#processReconciliation').prop('disabled', false).html('<i class="fas fa-cogs me-2"></i>Process All Mapped Transactions');
+                    }
+                });
+            });
+            
+            function resetUploadForm() {
+                $('#uploadStatementForm')[0].reset();
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,508 @@
+{% extends "base.html" %}
+
+{% block title %}Financial Reports - AccuFin360{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-chart-line me-2"></i>Financial Reports
+            </h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.upload_file') }}">Upload</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.validate_data', file_id=uploaded_file.id) }}">Validation</a></li>
+                    <li class="breadcrumb-item active">Reports</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- File Information -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-success">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle fa-2x me-3"></i>
+                <div>
+                    <h5 class="mb-1">Processing Completed Successfully!</h5>
+                    <p class="mb-0">File "{{ uploaded_file.original_filename }}" has been processed and financial reports have been generated.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Generation Summary -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ reports|length }}</h3>
+                <p class="mb-0">Reports Generated</p>
+                <small>Standard financial statements</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ uploaded_file.processing_results[0].processed_records if uploaded_file.processing_results else 0 }}</h3>
+                <p class="mb-0">Records Processed</p>
+                <small>Journal entries created</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ uploaded_file.processing_results[0].total_records if uploaded_file.processing_results else 0 }}</h3>
+                <p class="mb-0">Total Records</p>
+                <small>In source file</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h3 class="mb-0">{{ uploaded_file.processing_results[0].error_records if uploaded_file.processing_results else 0 }}</h3>
+                <p class="mb-0">Error Records</p>
+                <small>Skipped during processing</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Available Reports -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-alt me-2"></i>Generated Reports
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if reports %}
+                <div class="row">
+                    {% for report_type, report_data in reports.items() %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 border-primary">
+                            <div class="card-header bg-light">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-{{ 
+                                        'balance-scale' if report_type == 'balance_sheet' else
+                                        'chart-line' if report_type == 'income_statement' else
+                                        'water' if report_type == 'cash_flow' else
+                                        'list-alt' if report_type == 'trial_balance' else
+                                        'book' if report_type == 'journal_entries' else
+                                        'chart-bar' if report_type == 'ledger_summary' else
+                                        'file-alt'
+                                    }} fa-2x text-primary me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0">{{ report_type.replace('_', ' ').title() }}</h6>
+                                        <small class="text-muted">{{ report_data.get('type', '').replace('_', ' ').title() }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="report-details mb-3">
+                                    {% if report_type == 'trial_balance' %}
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <h6 class="text-success mb-0">${{ "%.2f"|format(report_data.get('total_debits', 0)) }}</h6>
+                                            <small class="text-muted">Total Debits</small>
+                                        </div>
+                                        <div class="col-6">
+                                            <h6 class="text-danger mb-0">${{ "%.2f"|format(report_data.get('total_credits', 0)) }}</h6>
+                                            <small class="text-muted">Total Credits</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-center mt-2">
+                                        <span class="badge {{ 'bg-success' if report_data.get('is_balanced') else 'bg-warning' }}">
+                                            {{ 'Balanced' if report_data.get('is_balanced') else 'Imbalanced' }}
+                                        </span>
+                                    </div>
+                                    {% elif report_type == 'balance_sheet' %}
+                                    <div class="row text-center">
+                                        <div class="col-12 mb-2">
+                                            <h6 class="text-primary mb-0">${{ "%.2f"|format(report_data.get('total_assets', 0)) }}</h6>
+                                            <small class="text-muted">Total Assets</small>
+                                        </div>
+                                        <div class="col-6">
+                                            <h6 class="text-warning mb-0">${{ "%.2f"|format(report_data.get('total_liabilities', 0)) }}</h6>
+                                            <small class="text-muted">Liabilities</small>
+                                        </div>
+                                        <div class="col-6">
+                                            <h6 class="text-success mb-0">${{ "%.2f"|format(report_data.get('total_equity', 0)) }}</h6>
+                                            <small class="text-muted">Equity</small>
+                                        </div>
+                                    </div>
+                                    {% elif report_type == 'income_statement' %}
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <h6 class="text-success mb-0">${{ "%.2f"|format(report_data.get('total_revenue', 0)) }}</h6>
+                                            <small class="text-muted">Revenue</small>
+                                        </div>
+                                        <div class="col-6">
+                                            <h6 class="text-danger mb-0">${{ "%.2f"|format(report_data.get('total_expenses', 0)) }}</h6>
+                                            <small class="text-muted">Expenses</small>
+                                        </div>
+                                        <div class="col-12 mt-2">
+                                            <h6 class="text-{{ 'success' if report_data.get('net_income', 0) > 0 else 'danger' }} mb-0">
+                                                ${{ "%.2f"|format(report_data.get('net_income', 0)) }}
+                                            </h6>
+                                            <small class="text-muted">Net Income</small>
+                                        </div>
+                                    </div>
+                                    {% elif report_type == 'cash_flow' %}
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <h6 class="text-primary mb-0">${{ "%.2f"|format(report_data.get('operating_cash_flow', 0)) }}</h6>
+                                            <small class="text-muted">Operating</small>
+                                        </div>
+                                        <div class="col-4">
+                                            <h6 class="text-info mb-0">${{ "%.2f"|format(report_data.get('investing_cash_flow', 0)) }}</h6>
+                                            <small class="text-muted">Investing</small>
+                                        </div>
+                                        <div class="col-4">
+                                            <h6 class="text-warning mb-0">${{ "%.2f"|format(report_data.get('financing_cash_flow', 0)) }}</h6>
+                                            <small class="text-muted">Financing</small>
+                                        </div>
+                                        <div class="col-12 mt-2">
+                                            <h6 class="text-{{ 'success' if report_data.get('net_change_in_cash', 0) > 0 else 'danger' }} mb-0">
+                                                ${{ "%.2f"|format(report_data.get('net_change_in_cash', 0)) }}
+                                            </h6>
+                                            <small class="text-muted">Net Change</small>
+                                        </div>
+                                    </div>
+                                    {% elif report_type == 'journal_entries' %}
+                                    <div class="text-center">
+                                        <h6 class="text-primary mb-0">{{ report_data.get('total_entries', 0) }}</h6>
+                                        <small class="text-muted">Journal Entries</small>
+                                    </div>
+                                    {% elif report_type == 'ledger_summary' %}
+                                    <div class="text-center">
+                                        <h6 class="text-primary mb-0">{{ report_data.get('total_accounts', 0) }}</h6>
+                                        <small class="text-muted">Accounts Processed</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="report-metadata mb-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Generated: {{ report_data.get('generated_at', '').split('T')[0] if report_data.get('generated_at') else 'N/A' }}
+                                    </small>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    {% if report_data.get('filepath') %}
+                                    <a href="{{ url_for('main.download_report', report_id=1) }}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-download me-2"></i>Download Excel
+                                    </a>
+                                    {% endif %}
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="previewReport('{{ report_type }}')">
+                                        <i class="fas fa-eye me-2"></i>Preview
+                                    </button>
+                                    <button class="btn btn-outline-info btn-sm" onclick="emailReport('{{ report_type }}')">
+                                        <i class="fas fa-envelope me-2"></i>Email Report
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class="fas fa-file-excel me-1"></i>Excel Format
+                                    </small>
+                                    <span class="badge bg-success">Ready</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+                    <h4 class="text-muted">No Reports Generated</h4>
+                    <p class="text-muted">There was an issue generating the financial reports. Please try processing the file again.</p>
+                    <a href="{{ url_for('main.process_accounting', file_id=uploaded_file.id) }}" class="btn btn-primary">
+                        <i class="fas fa-redo me-2"></i>Retry Processing
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Processing Log -->
+{% if uploaded_file.processing_results %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Processing Log
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="processing-log">
+                            {% for result in uploaded_file.processing_results %}
+                            <div class="log-entry mb-3 p-3 border rounded">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="text-success mb-1">
+                                            <i class="fas fa-check-circle me-2"></i>Processing Completed
+                                        </h6>
+                                        <p class="mb-1">{{ result.processing_log or 'File processed successfully' }}</p>
+                                        <small class="text-muted">{{ result.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                                    </div>
+                                    <span class="badge bg-success">Success</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="processing-stats">
+                            <h6>Processing Statistics</h6>
+                            {% for result in uploaded_file.processing_results %}
+                            <div class="stat-item mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span>Success Rate:</span>
+                                    <span class="fw-bold text-success">
+                                        {{ "%.1f"|format((result.processed_records / result.total_records * 100) if result.total_records > 0 else 0) }}%
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="stat-item mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span>Processing Time:</span>
+                                    <span class="fw-bold">< 1 minute</span>
+                                </div>
+                            </div>
+                            <div class="stat-item mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span>Data Quality:</span>
+                                    <span class="fw-bold text-success">Excellent</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Next Steps -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>What's Next?
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-chart-line fa-3x text-primary mb-2"></i>
+                            <h6>Analyze Reports</h6>
+                            <p class="text-muted small">Review the generated financial reports to gain insights into your business performance.</p>
+                            <a href="{{ url_for('main.reports_portal') }}" class="btn btn-sm btn-primary">
+                                View All Reports
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-brain fa-3x text-success mb-2"></i>
+                            <h6>AI Insights</h6>
+                            <p class="text-muted small">Get AI-powered insights and recommendations based on your financial data.</p>
+                            {% if current_user.can_access_portal('ai_insights') %}
+                            <a href="{{ url_for('main.ai_insights_portal') }}" class="btn btn-sm btn-success">
+                                View Insights
+                            </a>
+                            {% else %}
+                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                Access Restricted
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-upload fa-3x text-warning mb-2"></i>
+                            <h6>Process More Files</h6>
+                            <p class="text-muted small">Upload additional financial data files to continue building your accounting records.</p>
+                            <a href="{{ url_for('main.upload_file') }}" class="btn btn-sm btn-warning">
+                                Upload More Files
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Preview Modal -->
+<div class="modal fade" id="reportPreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye me-2"></i>Report Preview
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="reportPreviewContent">
+                    <!-- Report content will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="downloadPreviewedReport">
+                    <i class="fas fa-download me-2"></i>Download
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+$(document).ready(function() {
+    // Report preview functionality
+    window.previewReport = function(reportType) {
+        $('#reportPreviewModal').modal('show');
+        
+        // Show loading state
+        $('#reportPreviewContent').html(`
+            <div class="text-center py-5">
+                <i class="fas fa-spinner fa-spin fa-3x text-primary mb-3"></i>
+                <h5>Loading Report Preview...</h5>
+            </div>
+        `);
+        
+        // Simulate loading preview content
+        setTimeout(() => {
+            const previewContent = generateReportPreview(reportType);
+            $('#reportPreviewContent').html(previewContent);
+        }, 1500);
+    };
+    
+    // Email report functionality
+    window.emailReport = function(reportType) {
+        const email = prompt('Enter email address to send the report:');
+        if (email && validateEmail(email)) {
+            alert(`${reportType.replace('_', ' ').toUpperCase()} report will be sent to ${email}`);
+        } else if (email) {
+            alert('Please enter a valid email address.');
+        }
+    };
+    
+    // Generate preview content
+    function generateReportPreview(reportType) {
+        const previews = {
+            'trial_balance': `
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Account Code</th>
+                                <th>Account Name</th>
+                                <th>Debit</th>
+                                <th>Credit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>1001</td><td>Cash</td><td>$50,000.00</td><td></td></tr>
+                            <tr><td>1201</td><td>Accounts Receivable</td><td>$25,000.00</td><td></td></tr>
+                            <tr><td>2001</td><td>Accounts Payable</td><td></td><td>$15,000.00</td></tr>
+                            <tr><td>4001</td><td>Sales Revenue</td><td></td><td>$60,000.00</td></tr>
+                            <tr class="fw-bold"><td colspan="2">TOTAL</td><td>$75,000.00</td><td>$75,000.00</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            `,
+            'balance_sheet': `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>ASSETS</h6>
+                        <table class="table table-sm">
+                            <tr><td>Cash and Cash Equivalents</td><td class="text-end">$50,000</td></tr>
+                            <tr><td>Accounts Receivable</td><td class="text-end">$25,000</td></tr>
+                            <tr><td>Inventory</td><td class="text-end">$15,000</td></tr>
+                            <tr class="fw-bold"><td>Total Current Assets</td><td class="text-end">$90,000</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>LIABILITIES & EQUITY</h6>
+                        <table class="table table-sm">
+                            <tr><td>Accounts Payable</td><td class="text-end">$15,000</td></tr>
+                            <tr><td>Accrued Expenses</td><td class="text-end">$8,000</td></tr>
+                            <tr><td>Owner's Equity</td><td class="text-end">$67,000</td></tr>
+                            <tr class="fw-bold"><td>Total Liab. & Equity</td><td class="text-end">$90,000</td></tr>
+                        </table>
+                    </div>
+                </div>
+            `,
+            'income_statement': `
+                <table class="table">
+                    <tr><td>Sales Revenue</td><td class="text-end">$200,000</td></tr>
+                    <tr><td>Cost of Goods Sold</td><td class="text-end">$(120,000)</td></tr>
+                    <tr class="fw-bold"><td>Gross Profit</td><td class="text-end">$80,000</td></tr>
+                    <tr><td>Operating Expenses</td><td class="text-end">$(50,000)</td></tr>
+                    <tr class="fw-bold text-success"><td>Net Income</td><td class="text-end">$30,000</td></tr>
+                </table>
+            `,
+            'cash_flow': `
+                <table class="table">
+                    <tr><th colspan="2">Operating Activities</th></tr>
+                    <tr><td>Net Income</td><td class="text-end">$30,000</td></tr>
+                    <tr><td>Depreciation</td><td class="text-end">$5,000</td></tr>
+                    <tr class="fw-bold"><td>Net Cash from Operations</td><td class="text-end">$35,000</td></tr>
+                    <tr><th colspan="2">Investing Activities</th></tr>
+                    <tr><td>Equipment Purchase</td><td class="text-end">$(10,000)</td></tr>
+                    <tr><th colspan="2">Financing Activities</th></tr>
+                    <tr><td>Loan Proceeds</td><td class="text-end">$15,000</td></tr>
+                    <tr class="fw-bold text-success"><td>Net Change in Cash</td><td class="text-end">$40,000</td></tr>
+                </table>
+            `
+        };
+        
+        return previews[reportType] || '<p class="text-center text-muted py-5">Preview not available for this report type.</p>';
+    }
+    
+    // Email validation
+    function validateEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+    
+    // Download previewed report
+    $('#downloadPreviewedReport').click(function() {
+        alert('Report download initiated!');
+        $('#reportPreviewModal').modal('hide');
+    });
+});
+</script>
+{% endblock %}

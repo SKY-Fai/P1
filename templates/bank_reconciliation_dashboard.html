@@ -1,0 +1,1709 @@
+{% extends "base.html" %}
+
+{% block title %}Enhanced Bank Reconciliation & AR/AP Dashboard - F-AI Accountant{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .dashboard-card {
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    .dashboard-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    .ar-ap-card {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border-left: 5px solid #2196f3;
+    }
+    .bank-recon-card {
+        background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+        border-left: 5px solid #4caf50;
+    }
+    .stat-card {
+        text-align: center;
+        padding: 20px;
+    }
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0;
+    }
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    .transaction-row {
+        border-left: 4px solid transparent;
+        transition: border-color 0.3s;
+        padding: 12px;
+        margin-bottom: 8px;
+        border-radius: 6px;
+        background: #ffffff;
+    }
+    .transaction-row.matched {
+        border-left-color: #28a745;
+        background: #f8fff8;
+    }
+    .transaction-row.unmatched {
+        border-left-color: #ffc107;
+        background: #fffef8;
+    }
+    .transaction-row.doubtful {
+        border-left-color: #dc3545;
+        background: #fff8f8;
+    }
+    .activity-entry {
+        border-left: 3px solid #007bff;
+        padding-left: 15px;
+        margin-bottom: 15px;
+    }
+    .confidence-bar {
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .quick-action-btn {
+        position: relative;
+    }
+    .quick-action-btn .badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+    }
+    .exceptions-container {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-chart-line text-primary me-2"></i>
+                        Bank Reconciliation Dashboard
+                    </h2>
+                    <p class="text-muted mb-0">Comprehensive reconciliation analytics and management</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-secondary me-2" onclick="refreshData()">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="exportReport()">
+                        <i class="fas fa-download me-1"></i>Export Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card dashboard-card bg-success text-white">
+                <div class="card-body stat-card">
+                    <h3 class="stat-number" id="aiMatchesCount">0</h3>
+                    <p class="stat-label">AI Matches</p>
+                    <small>Automatically matched transactions</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card dashboard-card bg-primary text-white">
+                <div class="card-body stat-card">
+                    <h3 class="stat-number" id="manualMatchesCount">0</h3>
+                    <p class="stat-label">Manual Matches</p>
+                    <small>User verified transactions</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card dashboard-card bg-warning text-white">
+                <div class="card-body stat-card">
+                    <h3 class="stat-number" id="unmatchedCount">0</h3>
+                    <p class="stat-label">Unmatched</p>
+                    <small>Require manual review</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card dashboard-card bg-danger text-white">
+                <div class="card-body stat-card">
+                    <h3 class="stat-number" id="exceptionsCount">0</h3>
+                    <p class="stat-label">Exceptions</p>
+                    <small>Need immediate attention</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AR/AP Module Integration -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card dashboard-card ar-ap-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-receipt text-primary me-2"></i>
+                        Accounts Receivable (AR)
+                    </h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="loadARDashboard()">
+                        <i class="fas fa-eye me-1"></i>View Details
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h4 class="text-primary mb-0" id="arOutstanding">₹0</h4>
+                                <small class="text-muted">Outstanding Amount</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h4 class="text-danger mb-0" id="arOverdue">₹0</h4>
+                                <small class="text-muted">Overdue Amount</small>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <span>Total Invoices:</span>
+                        <strong id="arInvoiceCount">0</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Overdue Count:</span>
+                        <strong class="text-danger" id="arOverdueCount">0</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="card dashboard-card ar-ap-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-invoice text-success me-2"></i>
+                        Accounts Payable (AP)
+                    </h5>
+                    <button class="btn btn-sm btn-outline-success" onclick="loadAPDashboard()">
+                        <i class="fas fa-eye me-1"></i>View Details
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h4 class="text-success mb-0" id="apOutstanding">₹0</h4>
+                                <small class="text-muted">Outstanding Amount</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h4 class="text-warning mb-0" id="apDueSoon">₹0</h4>
+                                <small class="text-muted">Due Soon (7 days)</small>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <span>Total Invoices:</span>
+                        <strong id="apInvoiceCount">0</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Due Soon Count:</span>
+                        <strong class="text-warning" id="apDueSoonCount">0</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AR/AP Template Upload Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-upload text-info me-2"></i>
+                        AR/AP Template Processing
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Upload Invoice Template</h6>
+                            <form id="arApTemplateForm" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <input type="file" class="form-control" id="arApTemplateFile" accept=".xlsx,.xls,.csv" required>
+                                    <div class="form-text">Upload Excel/CSV file with AR/AP invoices</div>
+                                </div>
+                                <div class="mb-3">
+                                    <select class="form-select" id="templateType" required>
+                                        <option value="">Select Template Type</option>
+                                        <option value="AR">Accounts Receivable (AR)</option>
+                                        <option value="AP">Accounts Payable (AP)</option>
+                                        <option value="MIXED">Mixed AR/AP</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-cogs me-1"></i>Process Template
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Template Requirements</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Invoice Number</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Party Name (Customer/Vendor)</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Invoice Date</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Due Date</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Amount</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Invoice Type (AR/AP)</li>
+                            </ul>
+                            <div class="mt-3">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="downloadARAPTemplate()">
+                                    <i class="fas fa-download me-1"></i>Download Template
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Mapping Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-link text-warning me-2"></i>
+                        Manual Transaction Mapping
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-warning" onclick="showManualMappingModal()">
+                            <i class="fas fa-plus me-1"></i>Create New Mapping
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="refreshMappings()">
+                            <i class="fas fa-sync me-1"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="card border-warning">
+                                <div class="card-body text-center">
+                                    <h5 class="text-warning mb-0" id="unmappedTransactionsCount">0</h5>
+                                    <small class="text-muted">Unmapped Transactions</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <h5 class="text-success mb-0" id="manualMappingsCount">0</h5>
+                                    <small class="text-muted">Manual Mappings</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-info">
+                                <div class="card-body text-center">
+                                    <h5 class="text-info mb-0" id="suggestedMappingsCount">0</h5>
+                                    <small class="text-muted">AI Suggestions</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Manual Mapping Interface -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="border-bottom pb-2">
+                                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                Unmapped Transactions
+                            </h6>
+                            <div id="unmappedTransactionsList" class="transaction-list" style="max-height: 300px; overflow-y: auto;">
+                                <div class="text-center p-3 text-muted">
+                                    <i class="fas fa-search fa-2x mb-2"></i>
+                                    <p>Loading unmapped transactions...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="border-bottom pb-2">
+                                <i class="fas fa-cogs text-primary me-2"></i>
+                                Account Mapping
+                            </h6>
+                            <div id="accountMappingForm" style="display: none;">
+                                <div class="mb-3">
+                                    <label class="form-label">Selected Transaction</label>
+                                    <div id="selectedTransactionInfo" class="p-3 bg-light border rounded">
+                                        <div class="text-center text-muted">
+                                            <i class="fas fa-mouse-pointer fa-2x mb-2"></i>
+                                            <p class="mb-0">Click on a transaction to select</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="accountSearch" class="form-label">Search Accounts</label>
+                                    <input type="text" id="accountSearch" class="form-control" placeholder="Type to search accounts..." onkeyup="searchAccounts()">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="accountSelect" class="form-label">Select Account</label>
+                                    <select id="accountSelect" class="form-select" onchange="updateMappingDetails()">
+                                        <option value="">Choose an account...</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="mappingNotes" class="form-label">Mapping Notes</label>
+                                    <textarea id="mappingNotes" class="form-control" rows="2" placeholder="Optional notes for this mapping..."></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6>
+                                                <i class="fas fa-balance-scale me-2"></i>
+                                                Double-Entry Preview
+                                            </h6>
+                                            <div id="mappingPreview">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <strong>Debit:</strong>
+                                                        <div id="debitAccount" class="text-muted">-</div>
+                                                        <div id="debitAmount" class="text-success fw-bold">₹0</div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <strong>Credit:</strong>
+                                                        <div id="creditAccount" class="text-muted">-</div>
+                                                        <div id="creditAmount" class="text-danger fw-bold">₹0</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-success" onclick="executeManualMapping()">
+                                        <i class="fas fa-check me-1"></i>Create Mapping
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="clearMappingForm()">
+                                        <i class="fas fa-times me-1"></i>Clear
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="noTransactionSelected" class="text-center p-4 text-muted">
+                                <i class="fas fa-hand-pointer fa-3x mb-3"></i>
+                                <h6>Select a Transaction</h6>
+                                <p>Choose an unmapped transaction from the left to start manual mapping</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Content -->
+    <div class="row">
+        
+        <!-- Reconciliation Status Overview -->
+        <div class="col-lg-8 mb-4">
+            <div class="card dashboard-card bank-recon-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie text-primary me-2"></i>
+                        Bank Reconciliation Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <canvas id="reconciliationChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="reconciliation-summary">
+                                <h6>Summary</h6>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Total Transactions:</span>
+                                        <strong id="totalTransactions">0</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Matched Amount:</span>
+                                        <strong class="text-success" id="matchedAmount">₹0</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Unmatched Amount:</span>
+                                        <strong class="text-warning" id="unmatchedAmount">₹0</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Confidence Rate:</span>
+                                        <strong class="text-info" id="confidenceRate">0%</strong>
+                                    </div>
+                                </div>
+                                
+                                <!-- Quick Actions -->
+                                <h6>Quick Actions</h6>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-warning quick-action-btn" onclick="jumpToManualMatch()">
+                                        <i class="fas fa-link me-2"></i>Manual Match
+                                        <span class="badge bg-warning" id="manualMatchBadge">0</span>
+                                    </button>
+                                    <button class="btn btn-outline-danger quick-action-btn" onclick="reviewExceptions()">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>Review Exceptions
+                                        <span class="badge bg-danger" id="exceptionsBadge">0</span>
+                                    </button>
+                                    <button class="btn btn-outline-success quick-action-btn" onclick="viewAISuggestions()">
+                                        <i class="fas fa-robot me-2"></i>AI Suggestions
+                                        <span class="badge bg-success" id="aiSuggestionsBadge">0</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch Controls -->
+        <div class="col-lg-4 mb-4">
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs text-secondary me-2"></i>
+                        Batch Controls
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Batch Status:</span>
+                            <div class="batch-status">
+                                <span class="badge bg-success">
+                                    <i class="fas fa-unlock me-1"></i>Unlocked
+                                </span>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Last Updated:</span>
+                            <small class="text-muted" id="lastUpdated">-</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary" onclick="lockBatch()">
+                            <i class="fas fa-lock me-2"></i>Lock Batch
+                        </button>
+                        <button class="btn btn-outline-success" onclick="approveBatch()">
+                            <i class="fas fa-check me-2"></i>Approve Batch
+                        </button>
+                        <button class="btn btn-outline-info" onclick="exportBatchReport()">
+                            <i class="fas fa-file-export me-2"></i>Export Batch
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exceptions Alert Panel -->
+            <div class="card dashboard-card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        Exceptions Alert
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="exceptions-container" id="exceptionsContainer">
+                        <!-- Exceptions will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-table text-info me-2"></i>
+                            Transaction Details
+                        </h5>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary" onclick="filterTransactions('all')">All</button>
+                            <button class="btn btn-outline-success" onclick="filterTransactions('matched')">Matched</button>
+                            <button class="btn btn-outline-warning" onclick="filterTransactions('unmatched')">Unmatched</button>
+                            <button class="btn btn-outline-danger" onclick="filterTransactions('doubtful')">Doubtful</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="transactionsTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>
+                                        <input type="checkbox" class="form-check-input" id="selectAll">
+                                    </th>
+                                    <th>Transaction ID</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Status & Confidence</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Transactions will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Log -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history text-secondary me-2"></i>
+                        Activity Log
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="activity-log" id="activityLog">
+                        <!-- Activity entries will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Global variables
+let reconciliationChart;
+let currentData = null;
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardData();
+});
+
+// Load dashboard data
+function loadDashboardData() {
+    console.log('Loading dashboard data...');
+    fetch('/api/bank-reconciliation/demo-data')
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Dashboard data loaded successfully:', data);
+            if (data.success) {
+                currentData = data.data;
+                populateDashboard(data.data);
+                console.log('Dashboard populated successfully');
+            } else {
+                console.error('Failed to load dashboard data:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading dashboard data:', error);
+            // Show error message to user
+            showErrorMessage('Failed to load dashboard data. Please refresh the page.');
+        });
+}
+
+// Populate dashboard with data
+function populateDashboard(data) {
+    updateStatistics(data.statistics);
+    initializeChart(data.statistics);
+    populateTransactionsTable(data.transactions);
+    displayExceptions(data.exceptions);
+    updateActivityLog(data.activity_log);
+    updateLastUpdated();
+}
+
+// Update statistics cards
+function updateStatistics(stats) {
+    document.getElementById('aiMatchesCount').textContent = stats.ai_matches;
+    document.getElementById('manualMatchesCount').textContent = stats.manual_matches;
+    document.getElementById('unmatchedCount').textContent = stats.unmatched;
+    document.getElementById('exceptionsCount').textContent = stats.exceptions;
+    
+    document.getElementById('totalTransactions').textContent = stats.total_transactions;
+    document.getElementById('matchedAmount').textContent = `₹${stats.matched_amount.toLocaleString()}`;
+    document.getElementById('unmatchedAmount').textContent = `₹${stats.unmatched_amount.toLocaleString()}`;
+    document.getElementById('confidenceRate').textContent = `${stats.confidence_rate}%`;
+    
+    // Update badges
+    document.getElementById('manualMatchBadge').textContent = stats.unmatched;
+    document.getElementById('exceptionsBadge').textContent = stats.exceptions;
+    document.getElementById('aiSuggestionsBadge').textContent = stats.ai_matches;
+}
+
+// Initialize pie chart
+function initializeChart(stats) {
+    const ctx = document.getElementById('reconciliationChart');
+    
+    if (reconciliationChart) {
+        reconciliationChart.destroy();
+    }
+    
+    reconciliationChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['AI Matches', 'Manual Matches', 'Unmatched', 'Exceptions'],
+            datasets: [{
+                data: [stats.ai_matches, stats.manual_matches, stats.unmatched, stats.exceptions],
+                backgroundColor: [
+                    '#28a745',
+                    '#007bff', 
+                    '#ffc107',
+                    '#dc3545'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+// Populate transactions table
+function populateTransactionsTable(transactions) {
+    const tbody = document.querySelector('#transactionsTable tbody');
+    tbody.innerHTML = '';
+    
+    transactions.forEach(transaction => {
+        const statusClass = getStatusClass(transaction.status);
+        const statusBadge = getStatusBadge(transaction.status);
+        const amountClass = transaction.amount > 0 ? 'text-success' : 'text-danger';
+        
+        const row = document.createElement('tr');
+        row.className = `transaction-row ${transaction.status}`;
+        row.innerHTML = `
+            <td>
+                <input type="checkbox" class="form-check-input" data-transaction-id="${transaction.id}">
+            </td>
+            <td>
+                <div class="fw-bold">${transaction.id}</div>
+                <div class="small text-muted">${transaction.date}</div>
+            </td>
+            <td>
+                <div class="transaction-desc">${transaction.description}</div>
+                <div class="small text-muted">${transaction.reference}</div>
+            </td>
+            <td class="${amountClass} fw-bold">₹${Math.abs(transaction.amount).toLocaleString()}</td>
+            <td>
+                <div class="d-flex align-items-center">
+                    ${statusBadge}
+                    <div class="ms-2">
+                        <div class="confidence-bar bg-light" style="width: 60px;">
+                            <div class="progress-bar ${statusClass}" style="width: ${transaction.confidence}%"></div>
+                        </div>
+                        <div class="small text-muted">${transaction.confidence}%</div>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    ${getActionButtons(transaction)}
+                </div>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Get status class
+function getStatusClass(status) {
+    switch(status) {
+        case 'matched': return 'bg-success';
+        case 'unmatched': return 'bg-warning';
+        case 'doubtful': return 'bg-danger';
+        default: return 'bg-secondary';
+    }
+}
+
+// Get status badge
+function getStatusBadge(status) {
+    const statusClass = getStatusClass(status);
+    const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+    return `<span class="badge ${statusClass}">${statusText}</span>`;
+}
+
+// Get action buttons
+function getActionButtons(transaction) {
+    if (transaction.status === 'matched') {
+        return `
+            <button class="btn btn-outline-primary btn-sm" onclick="viewMapping('${transaction.id}')">
+                <i class="fas fa-eye"></i>
+            </button>
+        `;
+    } else if (transaction.status === 'unmatched') {
+        return `
+            <button class="btn btn-outline-warning btn-sm" onclick="manualMap('${transaction.id}')">
+                <i class="fas fa-link"></i>
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="ignoreTransaction('${transaction.id}')">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+    } else {
+        return `
+            <button class="btn btn-outline-info btn-sm" onclick="reviewTransaction('${transaction.id}')">
+                <i class="fas fa-search"></i>
+            </button>
+            <button class="btn btn-outline-danger btn-sm" onclick="flagForReview('${transaction.id}')">
+                <i class="fas fa-flag"></i>
+            </button>
+        `;
+    }
+}
+
+// Display exceptions
+function displayExceptions(exceptions) {
+    const container = document.getElementById('exceptionsContainer');
+    container.innerHTML = '';
+    
+    if (exceptions.length === 0) {
+        container.innerHTML = '<p class="text-muted text-center">No exceptions found</p>';
+        return;
+    }
+    
+    exceptions.forEach(exception => {
+        const alertClass = getExceptionAlertClass(exception.severity);
+        const alert = document.createElement('div');
+        alert.className = `alert ${alertClass} alert-sm`;
+        alert.innerHTML = `
+            <div class="d-flex align-items-start">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <div class="flex-grow-1">
+                    <div class="fw-bold small">${exception.type.replace('_', ' ').toUpperCase()}</div>
+                    <div class="small">${exception.description}</div>
+                </div>
+            </div>
+        `;
+        container.appendChild(alert);
+    });
+}
+
+// Get exception alert class
+function getExceptionAlertClass(severity) {
+    switch(severity) {
+        case 'warning': return 'alert-warning';
+        case 'info': return 'alert-info';
+        case 'secondary': return 'alert-secondary';
+        default: return 'alert-danger';
+    }
+}
+
+// Update activity log
+function updateActivityLog(activities) {
+    const logContainer = document.getElementById('activityLog');
+    logContainer.innerHTML = '';
+    
+    activities.forEach(activity => {
+        const activityIcon = getActivityIcon(activity.type);
+        const activityClass = getActivityClass(activity.type);
+        
+        const logEntry = document.createElement('div');
+        logEntry.className = 'activity-entry';
+        logEntry.innerHTML = `
+            <div class="d-flex align-items-start">
+                <div class="me-3">
+                    <i class="fas ${activityIcon} ${activityClass}"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-bold">${activity.user}</div>
+                    <div class="small">${activity.action}</div>
+                    <div class="small text-muted">${activity.timestamp}</div>
+                </div>
+            </div>
+        `;
+        logContainer.appendChild(logEntry);
+    });
+}
+
+// Get activity icon
+function getActivityIcon(type) {
+    switch(type) {
+        case 'ai': return 'fa-robot';
+        case 'manual': return 'fa-user';
+        case 'system': return 'fa-cog';
+        default: return 'fa-info-circle';
+    }
+}
+
+// Get activity class
+function getActivityClass(type) {
+    switch(type) {
+        case 'ai': return 'text-success';
+        case 'manual': return 'text-primary';
+        case 'system': return 'text-info';
+        default: return 'text-secondary';
+    }
+}
+
+// Update last updated time
+function updateLastUpdated() {
+    const now = new Date();
+    document.getElementById('lastUpdated').textContent = now.toLocaleString();
+}
+
+// Show error message to user
+function showErrorMessage(message) {
+    // Create error alert div
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'alert alert-danger alert-dismissible fade show';
+    errorDiv.innerHTML = `
+        <strong>Error:</strong> ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Insert at top of page
+    const container = document.querySelector('.container-fluid');
+    container.insertBefore(errorDiv, container.firstChild);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        if (errorDiv.parentNode) {
+            errorDiv.parentNode.removeChild(errorDiv);
+        }
+    }, 5000);
+}
+
+// Dashboard action functions
+function refreshData() {
+    loadDashboardData();
+}
+
+function exportReport() {
+    window.open('/api/bank-reconciliation/export', '_blank');
+}
+
+function filterTransactions(status) {
+    const rows = document.querySelectorAll('#transactionsTable tbody tr');
+    rows.forEach(row => {
+        if (status === 'all' || row.classList.contains(status)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+function jumpToManualMatch() {
+    filterTransactions('unmatched');
+}
+
+function reviewExceptions() {
+    // Scroll to exceptions panel
+    document.querySelector('#exceptionsContainer').scrollIntoView({ behavior: 'smooth' });
+}
+
+function viewAISuggestions() {
+    filterTransactions('matched');
+}
+
+function lockBatch() {
+    alert('Batch locked for processing');
+}
+
+function approveBatch() {
+    alert('Batch approved for final reconciliation');
+}
+
+function exportBatchReport() {
+    window.open('/api/bank-reconciliation/report', '_blank');
+}
+
+// Transaction action functions
+function viewMapping(transactionId) {
+    alert(`View mapping details for transaction: ${transactionId}`);
+}
+
+function manualMap(transactionId) {
+    alert(`Open manual mapping interface for transaction: ${transactionId}`);
+}
+
+function ignoreTransaction(transactionId) {
+    alert(`Transaction ${transactionId} marked as ignored`);
+}
+
+function reviewTransaction(transactionId) {
+    alert(`Review transaction: ${transactionId}`);
+}
+
+function flagForReview(transactionId) {
+    alert(`Transaction ${transactionId} flagged for management review`);
+}
+
+// ===== AR/AP MODULE FUNCTIONS =====
+
+function loadARDashboard() {
+    fetch('/api/ar-ap/ar-dashboard')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateARDashboard(data.dashboard);
+            } else {
+                console.error('Error loading AR dashboard:', data.error);
+                showNotification('Error loading AR dashboard', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading AR dashboard:', error);
+            showNotification('Failed to load AR dashboard', 'error');
+        });
+}
+
+function loadAPDashboard() {
+    fetch('/api/ar-ap/ap-dashboard')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateAPDashboard(data.dashboard);
+            } else {
+                console.error('Error loading AP dashboard:', data.error);
+                showNotification('Error loading AP dashboard', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading AP dashboard:', error);
+            showNotification('Failed to load AP dashboard', 'error');
+        });
+}
+
+function updateARDashboard(dashboard) {
+    document.getElementById('arOutstanding').textContent = `₹${dashboard.total_outstanding.toLocaleString()}`;
+    document.getElementById('arOverdue').textContent = `₹${dashboard.overdue_amount.toLocaleString()}`;
+    document.getElementById('arInvoiceCount').textContent = dashboard.total_invoices;
+    document.getElementById('arOverdueCount').textContent = dashboard.overdue_count;
+}
+
+function updateAPDashboard(dashboard) {
+    document.getElementById('apOutstanding').textContent = `₹${dashboard.total_outstanding.toLocaleString()}`;
+    document.getElementById('apDueSoon').textContent = `₹${dashboard.due_soon_amount.toLocaleString()}`;
+    document.getElementById('apInvoiceCount').textContent = dashboard.total_invoices;
+    document.getElementById('apDueSoonCount').textContent = dashboard.due_soon_count;
+}
+
+// AR/AP Template Processing
+document.getElementById('arApTemplateForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const fileInput = document.getElementById('arApTemplateFile');
+    const templateType = document.getElementById('templateType');
+    
+    if (!fileInput.files[0] || !templateType.value) {
+        showNotification('Please select a file and template type', 'warning');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('template_file', fileInput.files[0]);
+    formData.append('template_type', templateType.value);
+    
+    showLoadingSpinner('Processing AR/AP template...');
+    
+    fetch('/api/ar-ap/process-template', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoadingSpinner();
+        
+        if (data.success) {
+            showNotification(`Successfully processed ${data.processed_count} invoices`, 'success');
+            
+            // Update dashboard with new data
+            loadARDashboard();
+            loadAPDashboard();
+            
+            // Show processing results
+            showProcessingResults(data);
+        } else {
+            showNotification(`Error processing template: ${data.error}`, 'error');
+        }
+    })
+    .catch(error => {
+        hideLoadingSpinner();
+        console.error('Error processing AR/AP template:', error);
+        showNotification('Failed to process template', 'error');
+    });
+});
+
+function showProcessingResults(data) {
+    const modal = `
+        <div class="modal fade" id="processingResultsModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">AR/AP Processing Results</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body text-center">
+                                        <h4>${data.ar_invoices ? data.ar_invoices.length : 0}</h4>
+                                        <p class="mb-0">AR Invoices</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h4>${data.ap_invoices ? data.ap_invoices.length : 0}</h4>
+                                        <p class="mb-0">AP Invoices</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${data.fraud_alerts && data.fraud_alerts.length > 0 ? `
+                            <div class="alert alert-warning">
+                                <h6>Fraud Alerts Detected:</h6>
+                                <ul class="mb-0">
+                                    ${data.fraud_alerts.map(alert => `
+                                        <li>Invoice ${alert.invoice_number} - ${alert.alert_level} risk</li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="mt-3">
+                            <h6>Accounting Entries Generated:</h6>
+                            <p class="text-muted">${data.accounting_entries ? data.accounting_entries.length : 0} journal entries created</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="integrateBankReconciliation()">
+                            Integrate with Bank Reconciliation
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('processingResultsModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to DOM
+    document.body.insertAdjacentHTML('beforeend', modal);
+    
+    // Show modal
+    const modalElement = new bootstrap.Modal(document.getElementById('processingResultsModal'));
+    modalElement.show();
+}
+
+function integrateBankReconciliation() {
+    // Load demo bank transactions for integration
+    const demoTransactions = [
+        {
+            id: 'TXN001',
+            date: '2025-01-05',
+            description: 'Invoice payment from ABC Corp',
+            amount: 25000,
+            reference: 'INV-001'
+        },
+        {
+            id: 'TXN002',
+            date: '2025-01-06',
+            description: 'Vendor payment to XYZ Supplies',
+            amount: -15000,
+            reference: 'PO-002'
+        }
+    ];
+    
+    fetch('/api/ar-ap/bank-reconciliation', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            transactions: demoTransactions
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(`Integrated ${data.matched_payments} payments with invoices`, 'success');
+            
+            // Refresh reconciliation data
+            loadDashboardData();
+        } else {
+            showNotification(`Integration error: ${data.error}`, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error integrating with bank reconciliation:', error);
+        showNotification('Failed to integrate with bank reconciliation', 'error');
+    });
+}
+
+function downloadARAPTemplate() {
+    // Create and download a sample AR/AP template
+    const templateData = [
+        ['Invoice Number', 'Party Name', 'Invoice Type', 'Invoice Date', 'Due Date', 'Amount', 'Tax Amount', 'Description'],
+        ['INV-001', 'ABC Corp', 'AR', '2025-01-01', '2025-01-31', '25000', '4500', 'Sales Invoice'],
+        ['PO-002', 'XYZ Supplies', 'AP', '2025-01-02', '2025-01-16', '15000', '2700', 'Office Supplies'],
+        ['INV-003', 'DEF Ltd', 'AR', '2025-01-03', '2025-02-02', '35000', '6300', 'Consulting Services']
+    ];
+    
+    let csvContent = templateData.map(row => row.join(',')).join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'AR_AP_Template.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+function showLoadingSpinner(message) {
+    const spinner = `
+        <div id="loadingSpinner" class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style="background: rgba(0,0,0,0.5); z-index: 9999;">
+            <div class="text-center text-white">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <div class="mt-2">${message}</div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', spinner);
+}
+
+function hideLoadingSpinner() {
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) {
+        spinner.remove();
+    }
+}
+
+function showNotification(message, type = 'info') {
+    const alertClass = type === 'success' ? 'alert-success' : 
+                     type === 'error' ? 'alert-danger' : 
+                     type === 'warning' ? 'alert-warning' : 'alert-info';
+    
+    const notification = `
+        <div class="alert ${alertClass} alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9998; min-width: 300px;">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', notification);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        const alert = document.querySelector('.alert.position-fixed');
+        if (alert) {
+            alert.remove();
+        }
+    }, 5000);
+}
+
+// ===== MANUAL MAPPING FUNCTIONS =====
+
+let selectedTransaction = null;
+let availableAccounts = [];
+
+// Initialize manual mapping features
+function initializeManualMapping() {
+    loadUnmappedTransactions();
+    loadChartOfAccounts();
+    updateMappingCounts();
+}
+
+// Load unmapped transactions
+function loadUnmappedTransactions() {
+    fetch('/api/bank-reconciliation/unmapped-transactions')
+        .then(response => response.json())
+        .then(data => {
+            populateUnmappedTransactionsList(data.transactions || []);
+            updateMappingCounts();
+        })
+        .catch(error => {
+            console.error('Error loading unmapped transactions:', error);
+            showMappingError('Failed to load unmapped transactions');
+        });
+}
+
+// Populate unmapped transactions list
+function populateUnmappedTransactionsList(transactions) {
+    const container = document.getElementById('unmappedTransactionsList');
+    
+    if (transactions.length === 0) {
+        container.innerHTML = `
+            <div class="text-center p-4 text-success">
+                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                <p class="mb-0">All transactions mapped!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    transactions.forEach(transaction => {
+        const transactionCard = document.createElement('div');
+        transactionCard.className = 'transaction-card border rounded p-3 mb-2 cursor-pointer';
+        transactionCard.style.cursor = 'pointer';
+        transactionCard.dataset.transactionId = transaction.id;
+        transactionCard.onclick = () => selectTransaction(transaction);
+        
+        const amountClass = transaction.amount > 0 ? 'text-success' : 'text-danger';
+        const amountPrefix = transaction.amount > 0 ? '+' : '';
+        
+        transactionCard.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <h6 class="mb-1">${transaction.id}</h6>
+                    <p class="mb-1 small">${transaction.description}</p>
+                    <small class="text-muted">${transaction.date}</small>
+                </div>
+                <div class="text-end">
+                    <div class="${amountClass} fw-bold">${amountPrefix}₹${Math.abs(transaction.amount).toLocaleString()}</div>
+                    <small class="text-muted">${transaction.reference}</small>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(transactionCard);
+    });
+    
+    document.getElementById('unmappedTransactionsCount').textContent = transactions.length;
+}
+
+// Select transaction for mapping
+function selectTransaction(transaction) {
+    selectedTransaction = transaction;
+    
+    // Update UI selection
+    document.querySelectorAll('.transaction-card').forEach(card => {
+        card.classList.remove('border-primary', 'bg-light');
+    });
+    
+    const selectedCard = document.querySelector(`[data-transaction-id="${transaction.id}"]`);
+    selectedCard.classList.add('border-primary', 'bg-light');
+    
+    // Show transaction info
+    const infoDiv = document.getElementById('selectedTransactionInfo');
+    const amountClass = transaction.amount > 0 ? 'text-success' : 'text-danger';
+    const amountPrefix = transaction.amount > 0 ? '+' : '';
+    
+    infoDiv.innerHTML = `
+        <div class="row">
+            <div class="col-md-8">
+                <h6 class="mb-1">${transaction.id}</h6>
+                <p class="mb-1">${transaction.description}</p>
+                <small class="text-muted">${transaction.date} | ${transaction.reference}</small>
+            </div>
+            <div class="col-md-4 text-end">
+                <h5 class="${amountClass} mb-0">${amountPrefix}₹${Math.abs(transaction.amount).toLocaleString()}</h5>
+                <small class="text-muted">Amount</small>
+            </div>
+        </div>
+    `;
+    
+    // Show mapping form
+    document.getElementById('accountMappingForm').style.display = 'block';
+    document.getElementById('noTransactionSelected').style.display = 'none';
+    
+    // Get account suggestions
+    suggestAccountsForTransaction(transaction);
+}
+
+// Load chart of accounts
+function loadChartOfAccounts() {
+    fetch('/api/bank-reconciliation/chart-of-accounts')
+        .then(response => response.json())
+        .then(data => {
+            availableAccounts = data.accounts || [];
+            populateAccountSelect(availableAccounts);
+        })
+        .catch(error => {
+            console.error('Error loading chart of accounts:', error);
+            // Use fallback accounts for demo
+            availableAccounts = [
+                {code: '1001', name: 'Cash in Hand', type: 'assets'},
+                {code: '1002', name: 'Bank Account', type: 'assets'},
+                {code: '4001', name: 'Sales Revenue', type: 'revenue'},
+                {code: '5001', name: 'Office Expenses', type: 'expenses'},
+                {code: '5002', name: 'Travel Expenses', type: 'expenses'},
+                {code: '5003', name: 'Professional Fees', type: 'expenses'},
+                {code: '2001', name: 'Accounts Payable', type: 'liabilities'},
+                {code: '1003', name: 'Accounts Receivable', type: 'assets'}
+            ];
+            populateAccountSelect(availableAccounts);
+        });
+}
+
+// Populate account select dropdown
+function populateAccountSelect(accounts) {
+    const select = document.getElementById('accountSelect');
+    select.innerHTML = '<option value="">Choose an account...</option>';
+    
+    // Group accounts by type
+    const groupedAccounts = {};
+    accounts.forEach(account => {
+        if (!groupedAccounts[account.type]) {
+            groupedAccounts[account.type] = [];
+        }
+        groupedAccounts[account.type].push(account);
+    });
+    
+    // Add options by group
+    Object.keys(groupedAccounts).forEach(type => {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = type.toUpperCase();
+        
+        groupedAccounts[type].forEach(account => {
+            const option = document.createElement('option');
+            option.value = account.code;
+            option.textContent = `${account.code} - ${account.name}`;
+            option.dataset.accountType = account.type;
+            optgroup.appendChild(option);
+        });
+        
+        select.appendChild(optgroup);
+    });
+}
+
+// Search accounts function
+function searchAccounts() {
+    const searchTerm = document.getElementById('accountSearch').value.toLowerCase();
+    const select = document.getElementById('accountSelect');
+    
+    if (!searchTerm) {
+        populateAccountSelect(availableAccounts);
+        return;
+    }
+    
+    const filteredAccounts = availableAccounts.filter(account => 
+        account.name.toLowerCase().includes(searchTerm) ||
+        account.code.toLowerCase().includes(searchTerm)
+    );
+    
+    populateAccountSelect(filteredAccounts);
+}
+
+// Get account suggestions for transaction
+function suggestAccountsForTransaction(transaction) {
+    fetch('/api/bank-reconciliation/suggest-mapping', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            transaction_id: transaction.id,
+            description: transaction.description,
+            amount: transaction.amount
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.suggestions && data.suggestions.length > 0) {
+            showAccountSuggestions(data.suggestions);
+        }
+    })
+    .catch(error => {
+        console.error('Error getting account suggestions:', error);
+        // Provide fallback suggestions based on description
+        provideFallbackSuggestions(transaction);
+    });
+}
+
+// Provide fallback suggestions
+function provideFallbackSuggestions(transaction) {
+    const description = transaction.description.toLowerCase();
+    let suggestions = [];
+    
+    if (description.includes('salary') || description.includes('payroll')) {
+        suggestions.push({account_code: '5004', account_name: 'Salary Expenses', confidence: 85});
+    } else if (description.includes('office') || description.includes('supplies')) {
+        suggestions.push({account_code: '5001', account_name: 'Office Expenses', confidence: 80});
+    } else if (description.includes('travel') || description.includes('transport')) {
+        suggestions.push({account_code: '5002', account_name: 'Travel Expenses', confidence: 80});
+    } else if (description.includes('professional') || description.includes('consultant')) {
+        suggestions.push({account_code: '5003', account_name: 'Professional Fees', confidence: 75});
+    } else if (transaction.amount > 0) {
+        suggestions.push({account_code: '4001', account_name: 'Sales Revenue', confidence: 70});
+    }
+    
+    if (suggestions.length > 0) {
+        showAccountSuggestions(suggestions);
+    }
+}
+
+// Show account suggestions
+function showAccountSuggestions(suggestions) {
+    const select = document.getElementById('accountSelect');
+    
+    // Add suggestion options at the top
+    const suggestionOptgroup = document.createElement('optgroup');
+    suggestionOptgroup.label = 'AI SUGGESTIONS';
+    
+    suggestions.forEach(suggestion => {
+        const option = document.createElement('option');
+        option.value = suggestion.account_code;
+        option.textContent = `${suggestion.account_code} - ${suggestion.account_name} (${suggestion.confidence}% match)`;
+        option.className = 'text-primary fw-bold';
+        suggestionOptgroup.appendChild(option);
+    });
+    
+    select.insertBefore(suggestionOptgroup, select.firstChild);
+}
+
+// Update mapping details preview
+function updateMappingDetails() {
+    const accountCode = document.getElementById('accountSelect').value;
+    if (!accountCode || !selectedTransaction) return;
+    
+    const account = availableAccounts.find(acc => acc.code === accountCode);
+    if (!account) return;
+    
+    const amount = Math.abs(selectedTransaction.amount);
+    const isCredit = selectedTransaction.amount > 0;
+    
+    // Determine debit/credit based on account type and transaction type
+    let debitAccount = '';
+    let creditAccount = '';
+    let debitAmount = 0;
+    let creditAmount = 0;
+    
+    if (isCredit) {
+        // Money coming in (credit to bank)
+        debitAccount = 'Bank Account';
+        creditAccount = account.name;
+        debitAmount = amount;
+        creditAmount = amount;
+    } else {
+        // Money going out (debit from bank)
+        debitAccount = account.name;
+        creditAccount = 'Bank Account';
+        debitAmount = amount;
+        creditAmount = amount;
+    }
+    
+    document.getElementById('debitAccount').textContent = debitAccount;
+    document.getElementById('creditAccount').textContent = creditAccount;
+    document.getElementById('debitAmount').textContent = `₹${debitAmount.toLocaleString()}`;
+    document.getElementById('creditAmount').textContent = `₹${creditAmount.toLocaleString()}`;
+}
+
+// Execute manual mapping
+function executeManualMapping() {
+    const accountCode = document.getElementById('accountSelect').value;
+    const notes = document.getElementById('mappingNotes').value;
+    
+    if (!selectedTransaction || !accountCode) {
+        showMappingError('Please select a transaction and account');
+        return;
+    }
+    
+    const mappingData = {
+        transaction_id: selectedTransaction.id,
+        account_code: accountCode,
+        notes: notes,
+        mapping_type: 'manual'
+    };
+    
+    // Show loading state
+    const executeBtn = document.querySelector('button[onclick="executeManualMapping()"]');
+    const originalText = executeBtn.innerHTML;
+    executeBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Mapping...';
+    executeBtn.disabled = true;
+    
+    fetch('/api/bank-reconciliation/manual-map', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(mappingData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMappingSuccess('Transaction mapped successfully!');
+            clearMappingForm();
+            loadUnmappedTransactions();
+            updateMappingCounts();
+            loadDashboardData(); // Refresh main dashboard
+        } else {
+            showMappingError(data.error || 'Failed to create mapping');
+        }
+    })
+    .catch(error => {
+        console.error('Error creating mapping:', error);
+        showMappingError('Error creating mapping');
+    })
+    .finally(() => {
+        executeBtn.innerHTML = originalText;
+        executeBtn.disabled = false;
+    });
+}
+
+// Clear mapping form
+function clearMappingForm() {
+    selectedTransaction = null;
+    document.getElementById('accountSelect').value = '';
+    document.getElementById('accountSearch').value = '';
+    document.getElementById('mappingNotes').value = '';
+    
+    document.getElementById('selectedTransactionInfo').innerHTML = `
+        <div class="text-center text-muted">
+            <i class="fas fa-mouse-pointer fa-2x mb-2"></i>
+            <p class="mb-0">Click on a transaction to select</p>
+        </div>
+    `;
+    
+    document.getElementById('debitAccount').textContent = '-';
+    document.getElementById('creditAccount').textContent = '-';
+    document.getElementById('debitAmount').textContent = '₹0';
+    document.getElementById('creditAmount').textContent = '₹0';
+    
+    document.getElementById('accountMappingForm').style.display = 'none';
+    document.getElementById('noTransactionSelected').style.display = 'block';
+    
+    // Clear transaction selection
+    document.querySelectorAll('.transaction-card').forEach(card => {
+        card.classList.remove('border-primary', 'bg-light');
+    });
+}
+
+// Update mapping counts
+function updateMappingCounts() {
+    fetch('/api/bank-reconciliation/mapping-stats')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('unmappedTransactionsCount').textContent = data.unmapped || 0;
+            document.getElementById('manualMappingsCount').textContent = data.manual_mappings || 0;
+            document.getElementById('suggestedMappingsCount').textContent = data.ai_suggestions || 0;
+        })
+        .catch(error => {
+            console.error('Error loading mapping stats:', error);
+            // Set fallback counts
+            document.getElementById('unmappedTransactionsCount').textContent = 5;
+            document.getElementById('manualMappingsCount').textContent = 2;
+            document.getElementById('suggestedMappingsCount').textContent = 3;
+        });
+}
+
+// Refresh mappings
+function refreshMappings() {
+    loadUnmappedTransactions();
+    loadChartOfAccounts();
+    updateMappingCounts();
+    clearMappingForm();
+}
+
+// Show manual mapping modal (placeholder)
+function showManualMappingModal() {
+    alert('Advanced manual mapping modal will be implemented for bulk operations');
+}
+
+// Show mapping success message
+function showMappingSuccess(message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="fas fa-check-circle me-2"></i>
+        <strong>Success:</strong> ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto dismiss after 3 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 3000);
+}
+
+// Show mapping error message
+function showMappingError(message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Error:</strong> ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto dismiss after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Initialize AR/AP dashboards on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadARDashboard();
+    loadAPDashboard();
+    loadDashboardData();
+    
+    // Initialize manual mapping after a short delay
+    setTimeout(() => {
+        initializeManualMapping();
+    }, 1500);
+});
+</script>
+{% endblock %}

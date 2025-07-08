@@ -1,0 +1,63 @@
+{
+  "reconciliation_summary": {
+    "total_transactions": 5,
+    "matched_transactions": 0,
+    "unmapped_transactions": 5,
+    "matching_percentage": 0.0,
+    "total_credits": 147500.0,
+    "total_debits": 197200.0,
+    "matched_amount": 0,
+    "unmapped_amount": -49700.0,
+    "reconciliation_date": "2025-07-06T17:44:23.534502"
+  },
+  "confidence_breakdown": {
+    "perfect_matches": 0,
+    "high_confidence": 0,
+    "moderate_confidence": 4,
+    "low_confidence": 1,
+    "unmapped": 0
+  },
+  "unmapped_transactions": [
+    {
+      "transaction_id": "BT_1",
+      "date": "2024-01-15T00:00:00",
+      "description": "NEFT CR ABC TECHNOLOGIES INV2024001 SOFTWARE PAYMENT",
+      "amount": 59000.0,
+      "reference": "NEFT789123",
+      "suggested_account": "1100"
+    },
+    {
+      "transaction_id": "BT_2",
+      "date": "2024-01-18T00:00:00",
+      "description": "NEFT CR DIGITAL SOLUTIONS INV2024002 WEBSITE DEV",
+      "amount": 88500.0,
+      "reference": "NEFT789124",
+      "suggested_account": "1100"
+    },
+    {
+      "transaction_id": "BT_3",
+      "date": "2024-01-10T00:00:00",
+      "description": "UPI DR OFFICE SUPPLIES BILL001 FURNITURE",
+      "amount": -17700.0,
+      "reference": "UPI456789",
+      "suggested_account": "1100"
+    },
+    {
+      "transaction_id": "BT_4",
+      "date": "2024-01-12T00:00:00",
+      "description": "NEFT DR SOFTWARE LICENSES BILL002 ANNUAL LICENSE",
+      "amount": -29500.0,
+      "reference": "NEFT456123",
+      "suggested_account": "1100"
+    },
+    {
+      "transaction_id": "BT_5",
+      "date": "2024-01-20T00:00:00",
+      "description": "SALARY PAYMENT TO EMPLOYEES",
+      "amount": -150000.0,
+      "reference": "SAL202401",
+      "suggested_account": "5000"
+    }
+  ],
+  "matched_transactions": []
+}

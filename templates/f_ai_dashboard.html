@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}F-AI Accountant - Financial Management{% endblock %}
+
+{% block extra_head %}
+<style>
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-left: 4px solid #667eea;
+        margin-bottom: 1.5rem;
+    }
+    
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+    }
+    
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .feature-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .feature-icon {
+        width: 48px;
+        height: 48px;
+        background: #667eea;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        margin-bottom: 1rem;
+    }
+    
+    .action-btn {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 5px;
+        text-decoration: none;
+        display: inline-block;
+        margin: 0.5rem;
+        transition: background 0.2s ease;
+    }
+    
+    .action-btn:hover {
+        background: #5a6fd8;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .section-title {
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 mb-3">F-AI Accountant</h1>
+        <p class="lead">Simple Financial Management Platform</p>
+        <p>Automated Processing • Real-time Analytics • Secure Storage</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <div class="stats-number">1,247</div>
+                <div class="text-muted">Active Users</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <div class="stats-number">47,856</div>
+                <div class="text-muted">Transactions</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <div class="stats-number">8,923</div>
+                <div class="text-muted">Reports Generated</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <div class="stats-number">97.6%</div>
+                <div class="text-muted">Processing Accuracy</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="text-center mb-5">
+        <h2 class="section-title">Quick Actions</h2>
+        <a href="{{ url_for('main.automated_accounting') }}" class="action-btn">
+            <i class="fas fa-calculator me-2"></i>Automated Accounting
+        </a>
+        <a href="{{ url_for('main.validation_dashboard') }}" class="action-btn">
+            <i class="fas fa-shield-alt me-2"></i>Validation Dashboard
+        </a>
+        <a href="{{ url_for('main.upload_file') }}" class="action-btn">
+            <i class="fas fa-upload me-2"></i>Upload Files
+        </a>
+        <a href="{{ url_for('main.reports_portal') }}" class="action-btn">
+            <i class="fas fa-chart-line me-2"></i>Reports
+        </a>
+    </div>
+
+    <!-- Core Features -->
+    <h2 class="section-title">Core Features</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <h5>AI Processing</h5>
+            <p class="text-muted">Automated transaction processing with intelligent classification and validation.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h5>Secure Storage</h5>
+            <p class="text-muted">Bank-grade security with comprehensive audit trails and access control.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h5>Financial Reports</h5>
+            <p class="text-muted">Generate comprehensive financial reports with analysis and compliance documentation.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-exchange-alt"></i>
+            </div>
+            <h5>Bank Reconciliation</h5>
+            <p class="text-muted">Automated transaction matching with intelligent pattern recognition.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-edit"></i>
+            </div>
+            <h5>Manual Entries</h5>
+            <p class="text-muted">Manual journal posting with real-time validation and balance verification.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h5>User Management</h5>
+            <p class="text-muted">Role-based access control with hierarchical user permissions.</p>
+        </div>
+    </div>
+
+    <!-- System Modules -->
+    <h2 class="section-title">System Modules</h2>
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="feature-card text-center">
+                <div class="feature-icon mx-auto">
+                    <i class="fas fa-file-invoice"></i>
+                </div>
+                <h6>Invoice Management</h6>
+                <p class="text-muted small">Process and track invoices</p>
+                <a href="{{ url_for('main.invoice_portal') }}" class="btn btn-sm btn-outline-primary">Access</a>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="feature-card text-center">
+                <div class="feature-icon mx-auto">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <h6>GST Compliance</h6>
+                <p class="text-muted small">Tax compliance and reporting</p>
+                <a href="{{ url_for('main.gst_portal') }}" class="btn btn-sm btn-outline-primary">Access</a>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="feature-card text-center">
+                <div class="feature-icon mx-auto">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h6>AI Insights</h6>
+                <p class="text-muted small">Intelligent financial analytics</p>
+                <a href="{{ url_for('main.ai_insights_portal') }}" class="btn btn-sm btn-outline-primary">Access</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('F-AI Accountant Dashboard loaded');
+    
+    // Simple animation for stats
+    const statsNumbers = document.querySelectorAll('.stats-number');
+    statsNumbers.forEach(stat => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        });
+        
+        stat.style.opacity = '0';
+        stat.style.transform = 'translateY(20px)';
+        stat.style.transition = 'all 0.5s ease';
+        observer.observe(stat);
+    });
+});
+</script>
+{% endblock %}

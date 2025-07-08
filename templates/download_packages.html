@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Download Test Packages - F-AI Accountant{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-download me-2"></i>Download Test Packages</h2>
+                <a href="{{ url_for('main.automated_accounting') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                </a>
+            </div>
+
+            <!-- Package Overview -->
+            <div class="alert alert-info mb-4">
+                <h5><i class="fas fa-info-circle me-2"></i>Complete Test Validation Results</h5>
+                <p class="mb-2">Download comprehensive Excel packages containing all input data, output templates, and validation results for the F-AI Accountant template system.</p>
+                <ul class="mb-0">
+                    <li><strong>Total Transaction Value Tested:</strong> ₹2,723,000</li>
+                    <li><strong>Template Success Rate:</strong> 100% (8/8 templates)</li>
+                    <li><strong>Classification Accuracy:</strong> 90-95%</li>
+                    <li><strong>Journal Generation:</strong> Perfect double-entry bookkeeping maintained</li>
+                </ul>
+            </div>
+
+            <!-- Download Cards -->
+            <div class="row">
+                {% for package in packages %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-excel me-2 text-success"></i>
+                                {{ package.name }}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{ package.description }}</p>
+                            
+                            <div class="mb-3">
+                                <strong>File Size:</strong> {{ package.size }}<br>
+                                <strong>Includes:</strong> {{ package.includes }}
+                            </div>
+
+                            <!-- Method-specific details -->
+                            {% if package.file == 'method1' %}
+                            <div class="alert alert-light">
+                                <small>
+                                    <strong>Best for:</strong> Small businesses, specific workflows, simple accounting needs<br>
+                                    <strong>Templates:</strong> Purchase, Sales, Expense, Income, Credit Note, Debit Note
+                                </small>
+                            </div>
+                            {% elif package.file == 'method2' %}
+                            <div class="alert alert-light">
+                                <small>
+                                    <strong>Best for:</strong> Medium businesses, multi-department usage<br>
+                                    <strong>Features:</strong> All-in-one template with transaction type dropdown
+                                </small>
+                            </div>
+                            {% elif package.file == 'method3' %}
+                            <div class="alert alert-light">
+                                <small>
+                                    <strong>Best for:</strong> Large enterprises, complex accounting requirements<br>
+                                    <strong>Features:</strong> 65+ fields, multi-currency, audit trails, workflows
+                                </small>
+                            </div>
+                            {% elif package.file == 'complete' %}
+                            <div class="alert alert-light">
+                                <small>
+                                    <strong>Contains:</strong> Complete validation overview with all test results<br>
+                                    <strong>Features:</strong> Classification results, journal generation, API testing
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{ url_for('main.download_test_package', package_name=package.file) }}" 
+                               class="btn btn-success btn-lg w-100">
+                                <i class="fas fa-download me-2"></i>Download {{ package.name }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Quick Download Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-bolt me-2"></i>Quick Download All Packages</h5>
+                </div>
+                <div class="card-body">
+                    <p>Download individual packages quickly:</p>
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('main.download_test_package', package_name='method1') }}" 
+                               class="btn btn-outline-success w-100">
+                                <i class="fas fa-download me-1"></i>Method 1
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('main.download_test_package', package_name='method2') }}" 
+                               class="btn btn-outline-success w-100">
+                                <i class="fas fa-download me-1"></i>Method 2
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('main.download_test_package', package_name='method3') }}" 
+                               class="btn btn-outline-success w-100">
+                                <i class="fas fa-download me-1"></i>Method 3
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('main.download_test_package', package_name='complete') }}" 
+                               class="btn btn-outline-primary w-100">
+                                <i class="fas fa-download me-1"></i>Complete Results
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- What's Included Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-list-check me-2"></i>What's Included in Each Package</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Input Data (Test Files):</h6>
+                            <ul>
+                                <li>Purchase transactions: 5 records, ₹825,000</li>
+                                <li>Sales transactions: 5 records, ₹1,035,000</li>
+                                <li>Merged transactions: 6 records, ₹863,000</li>
+                                <li>Realistic business scenario data</li>
+                                <li>GST calculations and tax compliance</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Output Data (Generated Results):</h6>
+                            <ul>
+                                <li>Template structures for all methods</li>
+                                <li>Journal generation results</li>
+                                <li>Classification accuracy reports (90-95%)</li>
+                                <li>Account suggestions and API testing</li>
+                                <li>Complete validation summaries</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Usage Instructions -->
+            <div class="card mt-4 mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-question-circle me-2"></i>How to Use Downloaded Packages</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-download fa-2x text-success mb-2"></i>
+                                <h6>1. Download</h6>
+                                <p>Click download button for your preferred method package</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-file-excel fa-2x text-primary mb-2"></i>
+                                <h6>2. Open in Excel</h6>
+                                <p>Open the downloaded .xlsx file in Microsoft Excel or compatible software</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-chart-line fa-2x text-info mb-2"></i>
+                                <h6>3. Review Results</h6>
+                                <p>Explore the different sheets containing templates, data, and validation results</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

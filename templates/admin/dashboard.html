@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - AccuFin360{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-cogs me-2"></i>Admin Dashboard</h2>
+                    <p class="text-muted">User management and permissions control center</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">Total Users</h5>
+                                    <h2>{{ stats.total_users }}</h2>
+                                    <small>{{ stats.active_users }} active</small>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-users fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{ url_for('admin.users_list') }}" class="text-white text-decoration-none">
+                                View All <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">Permissions</h5>
+                                    <h2>{{ stats.total_permissions }}</h2>
+                                    <small>Total assignments</small>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-shield-alt fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{ url_for('admin.permissions_matrix') }}" class="text-white text-decoration-none">
+                                Manage <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">Pending KYC</h5>
+                                    <h2>{{ stats.pending_kyc }}</h2>
+                                    <small>Verification pending</small>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-id-card fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{ url_for('admin.kyc_management') }}" class="text-white text-decoration-none">
+                                Review <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">Invitations</h5>
+                                    <h2>{{ stats.pending_invitations }}</h2>
+                                    <small>Pending responses</small>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-envelope fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{ url_for('admin.invitations_list') }}" class="text-white text-decoration-none">
+                                Manage <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-bolt me-2"></i>Quick Actions
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="d-grid">
+                                        <a href="{{ url_for('admin.create_user') }}" class="btn btn-primary btn-lg">
+                                            <i class="fas fa-user-plus me-2"></i>Create New User
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-grid">
+                                        <a href="{{ url_for('admin.create_invitation') }}" class="btn btn-success btn-lg">
+                                            <i class="fas fa-paper-plane me-2"></i>Send Invitation
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-grid">
+                                        <a href="{{ url_for('admin.permissions_matrix') }}" class="btn btn-info btn-lg">
+                                            <i class="fas fa-table me-2"></i>Permissions Matrix
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-history me-2"></i>Recent Permission Changes
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_activity %}
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Time</th>
+                                                <th>User</th>
+                                                <th>Target</th>
+                                                <th>Action</th>
+                                                <th>Permission</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for activity in recent_activity %}
+                                            <tr>
+                                                <td>
+                                                    <small>{{ activity.timestamp[:19] }}</small>
+                                                </td>
+                                                <td>{{ activity.actor.username }}</td>
+                                                <td>{{ activity.target.username }}</td>
+                                                <td>
+                                                    <span class="badge bg-{{ 'success' if activity.action == 'granted' else 'danger' }}">
+                                                        {{ activity.action.title() }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <small>{{ activity.module }} / {{ activity.permission }}</small>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="text-center">
+                                    <a href="{{ url_for('admin.audit_trail') }}" class="btn btn-outline-primary btn-sm">
+                                        View Full Audit Trail
+                                    </a>
+                                </div>
+                            {% else %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-history fa-2x mb-2"></i>
+                                    <p>No recent permission changes</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-clock me-2"></i>Recent Logins
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if stats.recent_logins %}
+                                <div class="list-group list-group-flush">
+                                    {% for user in stats.recent_logins %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <div>
+                                            <strong>{{ user.username }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ user.email }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted">
+                                                {% if user.last_login %}{{ user.last_login.strftime('%m/%d %H:%M') }}{% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-sign-in-alt fa-2x mb-2"></i>
+                                    <p>No recent logins</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-refresh dashboard stats every 5 minutes
+setInterval(function() {
+    fetch('/admin/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update dashboard statistics
+                console.log('Dashboard stats updated');
+            }
+        })
+        .catch(error => console.error('Error updating stats:', error));
+}, 300000); // 5 minutes
+</script>
+{% endblock %}

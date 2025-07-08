@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Login - F-AI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-lg">
+            <div class="card-header text-center">
+                <div class="d-flex align-items-center justify-content-center mb-2">
+                    <img src="{{ url_for('static', filename='images/f-ai-logo.png') }}" alt="F-AI Logo" class="login-logo">
+                    <h3 class="mb-0 f-ai-brand">F-AI</h3>
+                </div>
+                <p class="text-muted mb-0">AI-Powered Accounting Platform</p>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('auth.login') }}">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">
+                            <i class="fas fa-user me-1"></i>Username
+                        </label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            <i class="fas fa-lock me-1"></i>Password <small class="text-muted">(optional for demo)</small>
+                        </label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Not required for demo">
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                        <label class="form-check-label" for="remember">
+                            Remember me
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-sign-in-alt me-1"></i>Login
+                    </button>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p class="mb-0">Don't have an account? 
+                        <a href="{{ url_for('auth.register') }}" class="text-decoration-none">Register here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Demo Login Information -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Demo Login System
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-magic me-2"></i>
+                    <strong>Easy Login!</strong> Just enter any username - no password required! 
+                    Your account will be created automatically.
+                </div>
+                
+                <p class="small text-muted">Try these usernames to get different access levels:</p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><strong>admin</strong> - Full system access</li>
+                            <li><strong>accountant</strong> - Accounting features</li>
+                            <li><strong>auditor</strong> - Audit functions</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><strong>ca</strong> - CA professional tools</li>
+                            <li><strong>manager</strong> - Management view</li>
+                            <li><strong>viewer</strong> - Read-only access</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <p class="small text-muted">
+                    <i class="fas fa-lightbulb me-1"></i>
+                    <strong>Tip:</strong> Include keywords like "admin", "accountant", "auditor", or "ca" in your username to get specific roles!
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.main-content {
+    padding-top: 100px;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid var(--bs-border-color);
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.form-control {
+    border-radius: 10px;
+    padding: 12px 15px;
+}
+
+.btn-primary {
+    border-radius: 10px;
+    padding: 12px;
+    font-weight: 600;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,914 @@
+{
+  "single_purchase": {
+    "template_type": "Single Purchase",
+    "journal_entries": [
+      {
+        "entry_id": "JE-PUR-001",
+        "date": "2024-01-15",
+        "reference": "INV-001",
+        "description": "Purchase from ABC Office Supplies - Office furniture purchase",
+        "lines": [
+          {
+            "account": "Purchase Account",
+            "account_code": "5001",
+            "debit": 25000.0,
+            "credit": 0.0,
+            "description": "Office furniture purchase"
+          },
+          {
+            "account": "Input Tax (GST)",
+            "account_code": "1701",
+            "debit": 4500.0,
+            "credit": 0.0,
+            "description": "GST on Office furniture purchase"
+          },
+          {
+            "account": "Accounts Payable",
+            "account_code": "2001",
+            "debit": 0.0,
+            "credit": 29500.0,
+            "description": "Amount payable to ABC Office Supplies"
+          }
+        ],
+        "total_debit": 29500.0,
+        "total_credit": 29500.0,
+        "balanced": true,
+        "validation_status": "PASSED"
+      },
+      {
+        "entry_id": "JE-PUR-002",
+        "date": "2024-01-16",
+        "reference": "INV-002",
+        "description": "Purchase from XYZ Tech Solutions - Computer hardware",
+        "lines": [
+          {
+            "account": "Purchase Account",
+            "account_code": "5001",
+            "debit": 85000.0,
+            "credit": 0.0,
+            "description": "Computer hardware"
+          },
+          {
+            "account": "Input Tax (GST)",
+            "account_code": "1701",
+            "debit": 15300.0,
+            "credit": 0.0,
+            "description": "GST on Computer hardware"
+          },
+          {
+            "account": "Accounts Payable",
+            "account_code": "2001",
+            "debit": 0.0,
+            "credit": 100300.0,
+            "description": "Amount payable to XYZ Tech Solutions"
+          }
+        ],
+        "total_debit": 100300.0,
+        "total_credit": 100300.0,
+        "balanced": true,
+        "validation_status": "PASSED"
+      },
+      {
+        "entry_id": "JE-PUR-003",
+        "date": "2024-01-17",
+        "reference": "INV-003",
+        "description": "Purchase from PQR Stationery - Office supplies",
+        "lines": [
+          {
+            "account": "Purchase Account",
+            "account_code": "5001",
+            "debit": 12500.0,
+            "credit": 0.0,
+            "description": "Office supplies"
+          },
+          {
+            "account": "Input Tax (GST)",
+            "account_code": "1701",
+            "debit": 2250.0,
+            "credit": 0.0,
+            "description": "GST on Office supplies"
+          },
+          {
+            "account": "Accounts Payable",
+            "account_code": "2001",
+            "debit": 0.0,
+            "credit": 14750.0,
+            "description": "Amount payable to PQR Stationery"
+          }
+        ],
+        "total_debit": 14750.0,
+        "total_credit": 14750.0,
+        "balanced": true,
+        "validation_status": "PASSED"
+      },
+      {
+        "entry_id": "JE-PUR-004",
+        "date": "2024-01-18",
+        "reference": "INV-004",
+        "description": "Purchase from LMN Equipment - Manufacturing equipment",
+        "lines": [
+          {
+            "account": "Purchase Account",
+            "account_code": "5001",
+            "debit": 150000.0,
+            "credit": 0.0,
+            "description": "Manufacturing equipment"
+          },
+          {
+            "account": "Input Tax (GST)",
+            "account_code": "1701",
+            "debit": 27000.0,
+            "credit": 0.0,
+            "description": "GST on Manufacturing equipment"
+          },
+          {
+            "account": "Accounts Payable",
+            "account_code": "2001",
+            "debit": 0.0,
+            "credit": 177000.0,
+            "description": "Amount payable to LMN Equipment"
+          }
+        ],
+        "total_debit": 177000.0,
+        "total_credit": 177000.0,
+        "balanced": true,
+        "validation_status": "PASSED"
+      },
+      {
+        "entry_id": "JE-PUR-005",
+        "date": "2024-01-19",
+        "reference": "INV-005",
+        "description": "Purchase from RST Services - Professional services",
+        "lines": [
+          {
+            "account": "Purchase Account",
+            "account_code": "5001",
+            "debit": 45000.0,
+            "credit": 0.0,
+            "description": "Professional services"
+          },
+          {
+            "account": "Input Tax (GST)",
+            "account_code": "1701",
+            "debit": 8100.0,
+            "credit": 0.0,
+            "description": "GST on Professional services"
+          },
+          {
+            "account": "Accounts Payable",
+            "account_code": "2001",
+            "debit": 0.0,
+            "credit": 53100.0,
+            "description": "Amount payable to RST Services"
+          }
+        ],
+        "total_debit": 53100.0,
+        "total_credit": 53100.0,
+        "balanced": true,
+        "validation_status": "PASSED"
+      }
+    ],
+    "summary": {
+      "total_entries": 5,
+      "passed_entries": 5,
+      "failed_entries": 0,
+      "total_debit": 374650.0,
+      "total_credit": 374650.0,
+      "balanced": true
+    },
+    "validation_checks": {
+      "Double Entry Principle": true,
+      "Account Code Validity": true,
+      "Amount Consistency": true,
+      "Date Format": true,
+      "Reference Numbers": true
+    },
+    "ledger_accounts": {
+      "Purchase Account": {
+        "debit": 317500.0,
+        "credit": 0.0,
+        "balance": 317500.0
+      },
+      "Input Tax (GST)": {
+        "debit": 57150.0,
+        "credit": 0.0,
+        "balance": 57150.0
+      },
+      "Accounts Payable": {
+        "debit": 0.0,
+        "credit": 374650.0,
+        "balance": -374650.0
+      }
+    },
+    "trial_balance": {
+      "total_debit": 374650.0,
+      "total_credit": 374650.0,
+      "balanced": true
+    }
+  },
+  "comprehensive": {
+    "template_type": "Comprehensive",
+    "journal_entries": [
+      {
+        "entry_id": "JE-COMP-001",
+        "date": "2024-01-15",
+        "reference": "REF-001",
+        "description": "Purchase - ABC Office Supplies - Office Furniture Set",
+        "lines": [
+          {
+            "account": "Office Equipment",
+            "account_code": "5001",
+            "debit": 25000.0,
+            "credit": 0.0,
+            "description": "Purchase - Office Furniture Set"
+          },
+          {
+            "account": "CGST Receivable/Payable",
+            "account_code": "1701",
+            "debit": 2250.0,
+            "credit": 0.0,
+            "description": "CGST @ 9.0%"
+          },
+          {
+            "account": "SGST Receivable/Payable",
+            "account_code": "1702",
+            "debit": 2250.0,
+            "credit": 0.0,
+            "description": "SGST @ 9.0%"
+          },
+          {
+            "account": "Accounts Payable",
+            "account_code": "2001",
+            "debit": 0.0,
+            "credit": 29500.0,
+            "description": "Balance for ABC Office Supplies"
+          }
+        ],
+        "metadata": {
+          "transaction_type": "Purchase",
+          "party_info": {
+            "name": "ABC Office Supplies",
+            "type": "Vendor",
+            "gst": "27ABCDE1234F1Z5"
+          },
+          "tax_details": {
+            "type": "GST",
+            "rate": 18.0,
+            "cgst": 2250.0,
+            "sgst": 2250.0,
+            "igst": 0.0
+          },
+          "item_details": {
+            "code": "OFF-001",
+            "quantity": 5,
+            "unit_price": 5000.0
+          },
+          "workflow": {
+            "department": "Admin",
+            "project": "PROJ-001",
+            "cost_center": "CC-001",
+            "approval_status": "Approved"
+          }
+        },
+        "total_debit": 29500.0,
+        "total_credit": 29500.0,
+        "balanced": true,
+        "validation_status": "PASSED"
+      },
+      {
+        "entry_id": "JE-COMP-002",
+        "date": "2024-01-16",
+        "reference": "REF-002",
+        "description": "Sales - Customer Corp Ltd - Consulting Services",
+        "lines": [
+          {
+            "account": "Sales Revenue",
+            "account_code": "4001",
+            "debit": 0.0,
+            "credit": 75000.0,
+            "description": "Sales - Consulting Services"
+          },
+          {
+            "account": "CGST Receivable/Payable",
+            "account_code": "1701",
+            "debit": 0.0,
+            "credit": 6750.0,
+            "description": "CGST @ 9.0%"
+          },
+          {
+            "account": "SGST Receivable/Payable",
+            "account_code": "1702",
+            "debit": 0.0,
+            "credit": 6750.0,
+            "description": "SGST @ 9.0%"
+          },
+          {
+            "account": "Cash/Bank",
+            "account_code": "1001",
+            "debit": 88500.0,
+            "credit": 0.0,
+            "description": "Payment for Customer Corp Ltd"
+          }
+        ],
+        "metadata": {
+          "transaction_type": "Sales",
+          "party_info": {
+            "name": "Customer Corp Ltd",
+            "type": "Customer",
+            "gst": "27CUSTM5678C1D2"
+          },
+          "tax_details": {
+            "type": "GST",
+            "rate": 18.0,
+            "cgst": 6750.0,
+            "sgst": 6750.0,
+            "igst": 0.0
+          },
+          "item_details": {
+            "code": "SERV-001",
+            "quantity": 1,
+            "unit_price": 75000.0
+          },
+          "workflow": {
+            "department": "Sales",
+            "project": "PROJ-002",
+            "cost_center": "CC-002",
+            "approval_status": "Approved"
+          }
+        },
+        "total_debit": 88500.0,
+        "total_credit": 88500.0,
+        "balanced": true,
+        "validation_status": "PASSED"
+      },
+      {
+        "entry_id": "JE-COMP-003",
+        "date": "2024-01-17",
+        "reference": "REF-003",
+        "description": "Expense - Utility Provider - Electricity Bill",
+        "lines": [
+          {
+            "account": "Utilities Expense",
+            "account_code": "6001",
+            "debit": 8500.0,
+            "credit": 0.0,
+            "description": "Expense - Electricity Bill"
+          },
+          {
+            "account": "CGST Receivable/Payable",
+            "account_code": "1701",
+            "debit": 765.0,
+            "credit": 0.0,
+            "description": "CGST @ 9.0%"
+          },
+          {
+            "account": "SGST Receivable/Payable",
+            "account_code": "1702",
+            "debit": 765.0,
+            "credit": 0.0,
+            "description": "SGST @ 9.0%"
+          },
+          {
+            "account": "Accounts Payable",
+            "account_code": "2001",
+            "debit": 0.0,
+            "credit": 10030.0,
+            "description": "Balance for Utility Provider"
+          }
+        ],
+        "metadata": {
+          "transaction_type": "Expense",
+          "party_info": {
+            "name": "Utility Provider",
+            "type": "Service Provider",
+            "gst": "27UTILP9012E3F4"
+          },
+          "tax_details": {
+            "type": "GST",
+            "rate": 18.0,
+            "cgst": 765.0,
+            "sgst": 765.0,
+            "igst": 0.0
+          },
+          "item_details": {
+            "code": "UTIL-001",
+            "quantity": 1,
+            "unit_price": 8500.0
+          },
+          "workflow": {
+            "department": "Operations",
+            "project": "PROJ-003",
+            "cost_center": "CC-003",
+            "approval_status": "Approved"
+          }
+        },
+        "total_debit": 10030.0,
+        "total_credit": 10030.0,
+        "balanced": true,
+        "validation_status": "PASSED"
+      },
+      {
+        "entry_id": "JE-COMP-004",
+        "date": "2024-01-18",
+        "reference": "REF-004",
+        "description": "Income - Investment Client - Investment Returns",
+        "lines": [
+          {
+            "account": "Investment Income",
+            "account_code": "4002",
+            "debit": 0.0,
+            "credit": 50000.0,
+            "description": "Income - Investment Returns"
+          },
+          {
+            "account": "Cash/Bank",
+            "account_code": "1001",
+            "debit": 50000.0,
+            "credit": 0.0,
+            "description": "Payment for Investment Client"
+          }
+        ],
+        "metadata": {
+          "transaction_type": "Income",
+          "party_info": {
+            "name": "Investment Client",
+            "type": "Investor",
+            "gst": "27INVST3456G7H8"
+          },
+          "tax_details": {
+            "type": "TDS",
+            "rate": 10.0,
+            "cgst": 0.0,
+            "sgst": 0.0,
+            "igst": 0.0
+          },
+          "item_details": {
+            "code": "INV-001",
+            "quantity": 1,
+            "unit_price": 50000.0
+          },
+          "workflow": {
+            "department": "Finance",
+            "project": "PROJ-004",
+            "cost_center": "CC-004",
+            "approval_status": "Approved"
+          }
+        },
+        "total_debit": 50000.0,
+        "total_credit": 50000.0,
+        "balanced": true,
+        "validation_status": "PASSED"
+      },
+      {
+        "entry_id": "JE-COMP-005",
+        "date": "2024-01-19",
+        "reference": "REF-005",
+        "description": "Purchase - Tech Vendor - Computer System",
+        "lines": [
+          {
+            "account": "Computer Hardware",
+            "account_code": "5002",
+            "debit": 85000.0,
+            "credit": 0.0,
+            "description": "Purchase - Computer System"
+          },
+          {
+            "account": "CGST Receivable/Payable",
+            "account_code": "1701",
+            "debit": 7650.0,
+            "credit": 0.0,
+            "description": "CGST @ 9.0%"
+          },
+          {
+            "account": "SGST Receivable/Payable",
+            "account_code": "1702",
+            "debit": 7650.0,
+            "credit": 0.0,
+            "description": "SGST @ 9.0%"
+          },
+          {
+            "account": "Accounts Payable",
+            "account_code": "2001",
+            "debit": 0.0,
+            "credit": 100300.0,
+            "description": "Balance for Tech Vendor"
+          }
+        ],
+        "metadata": {
+          "transaction_type": "Purchase",
+          "party_info": {
+            "name": "Tech Vendor",
+            "type": "Vendor",
+            "gst": "27TECHV7890I1J2"
+          },
+          "tax_details": {
+            "type": "GST",
+            "rate": 18.0,
+            "cgst": 7650.0,
+            "sgst": 7650.0,
+            "igst": 0.0
+          },
+          "item_details": {
+            "code": "COMP-001",
+            "quantity": 10,
+            "unit_price": 8500.0
+          },
+          "workflow": {
+            "department": "IT",
+            "project": "PROJ-005",
+            "cost_center": "CC-005",
+            "approval_status": "Pending"
+          }
+        },
+        "total_debit": 100300.0,
+        "total_credit": 100300.0,
+        "balanced": true,
+        "validation_status": "PASSED"
+      }
+    ],
+    "summary": {
+      "total_entries": 5,
+      "passed_entries": 5,
+      "failed_entries": 0,
+      "total_debit": 278330.0,
+      "total_credit": 278330.0,
+      "balanced": true
+    },
+    "validation_checks": {
+      "Double Entry Principle": true,
+      "Account Code Validity": true,
+      "Amount Consistency": true,
+      "Date Format": true,
+      "Reference Numbers": true
+    },
+    "ledger_accounts": {
+      "Office Equipment": {
+        "debit": 25000.0,
+        "credit": 0.0,
+        "balance": 25000.0
+      },
+      "CGST Receivable/Payable": {
+        "debit": 10665.0,
+        "credit": 6750.0,
+        "balance": 3915.0
+      },
+      "SGST Receivable/Payable": {
+        "debit": 10665.0,
+        "credit": 6750.0,
+        "balance": 3915.0
+      },
+      "Accounts Payable": {
+        "debit": 0.0,
+        "credit": 139830.0,
+        "balance": -139830.0
+      },
+      "Sales Revenue": {
+        "debit": 0.0,
+        "credit": 75000.0,
+        "balance": -75000.0
+      },
+      "Cash/Bank": {
+        "debit": 138500.0,
+        "credit": 0.0,
+        "balance": 138500.0
+      },
+      "Utilities Expense": {
+        "debit": 8500.0,
+        "credit": 0.0,
+        "balance": 8500.0
+      },
+      "Investment Income": {
+        "debit": 0.0,
+        "credit": 50000.0,
+        "balance": -50000.0
+      },
+      "Computer Hardware": {
+        "debit": 85000.0,
+        "credit": 0.0,
+        "balance": 85000.0
+      }
+    },
+    "trial_balance": {
+      "total_debit": 264830.0,
+      "total_credit": 264830.0,
+      "balanced": true
+    }
+  },
+  "combined": {
+    "template_type": "Combined",
+    "journal_entries": [
+      {
+        "entry_id": "JE-COMB-001",
+        "date": "2024-01-15",
+        "reference": "PUR-001",
+        "description": "Purchase - Supplier A - Raw materials",
+        "transaction_type": "Purchase",
+        "lines": [
+          {
+            "account": "Inventory",
+            "account_code": "5001",
+            "debit": 50000.0,
+            "credit": 0.0,
+            "description": "Raw materials"
+          },
+          {
+            "account": "Input Tax",
+            "account_code": "1701",
+            "debit": 9000.0,
+            "credit": 0.0,
+            "description": "GST on Purchase"
+          },
+          {
+            "account": "Accounts Payable",
+            "account_code": "2001",
+            "debit": 0.0,
+            "credit": 59000.0,
+            "description": "Payable to Supplier A"
+          }
+        ],
+        "total_debit": 59000.0,
+        "total_credit": 59000.0,
+        "balanced": true,
+        "validation_status": "PASSED"
+      },
+      {
+        "entry_id": "JE-COMB-002",
+        "date": "2024-01-16",
+        "reference": "SAL-001",
+        "description": "Sales - Customer B - Product sales",
+        "transaction_type": "Sales",
+        "lines": [
+          {
+            "account": "Accounts Receivable",
+            "account_code": "1201",
+            "debit": 100300.0,
+            "credit": 0.0,
+            "description": "Receivable from Customer B"
+          },
+          {
+            "account": "Sales Revenue",
+            "account_code": "4001",
+            "debit": 0.0,
+            "credit": 85000.0,
+            "description": "Product sales"
+          },
+          {
+            "account": "Output Tax",
+            "account_code": "2301",
+            "debit": 0.0,
+            "credit": 15300.0,
+            "description": "GST on Sales"
+          }
+        ],
+        "total_debit": 100300.0,
+        "total_credit": 100300.0,
+        "balanced": true,
+        "validation_status": "PASSED"
+      },
+      {
+        "entry_id": "JE-COMB-003",
+        "date": "2024-01-17",
+        "reference": "INC-001",
+        "description": "Income - Investment Corp - Interest income",
+        "transaction_type": "Income",
+        "lines": [
+          {
+            "account": "Cash/Bank",
+            "account_code": "1001",
+            "debit": 12000.0,
+            "credit": 0.0,
+            "description": "Income from Investment Corp"
+          },
+          {
+            "account": "Interest Income",
+            "account_code": "4003",
+            "debit": 0.0,
+            "credit": 12000.0,
+            "description": "Interest income"
+          }
+        ],
+        "total_debit": 12000.0,
+        "total_credit": 12000.0,
+        "balanced": true,
+        "validation_status": "PASSED"
+      },
+      {
+        "entry_id": "JE-COMB-004",
+        "date": "2024-01-18",
+        "reference": "EXP-001",
+        "description": "Expense - Expense Provider - Office rent",
+        "transaction_type": "Expense",
+        "lines": [
+          {
+            "account": "Rent Expense",
+            "account_code": "6001",
+            "debit": 25000.0,
+            "credit": 0.0,
+            "description": "Office rent"
+          },
+          {
+            "account": "Cash/Bank",
+            "account_code": "1001",
+            "debit": 0.0,
+            "credit": 25000.0,
+            "description": "Payment for Office rent"
+          }
+        ],
+        "total_debit": 25000.0,
+        "total_credit": 25000.0,
+        "balanced": true,
+        "validation_status": "PASSED"
+      },
+      {
+        "entry_id": "JE-COMB-005",
+        "date": "2024-01-19",
+        "reference": "CN-001",
+        "description": "Credit_Note - Return Customer - Sales return",
+        "transaction_type": "Credit_Note",
+        "lines": [
+          {
+            "account": "Sales Returns",
+            "account_code": "4001",
+            "debit": 8000.0,
+            "credit": 0.0,
+            "description": "Credit Note - Sales return"
+          },
+          {
+            "account": "Accounts Receivable",
+            "account_code": "1201",
+            "debit": 0.0,
+            "credit": 9440.0,
+            "description": "Credit to Return Customer"
+          }
+        ],
+        "total_debit": 8000.0,
+        "total_credit": 9440.0,
+        "balanced": false,
+        "validation_status": "FAILED"
+      },
+      {
+        "entry_id": "JE-COMB-006",
+        "date": "2024-01-20",
+        "reference": "DN-001",
+        "description": "Debit_Note - Adjustment Party - Price adjustment",
+        "transaction_type": "Debit_Note",
+        "lines": [
+          {
+            "account": "Accounts Payable",
+            "account_code": "2001",
+            "debit": 3540.0,
+            "credit": 0.0,
+            "description": "Debit from Adjustment Party"
+          },
+          {
+            "account": "Adjustments",
+            "account_code": "6002",
+            "debit": 0.0,
+            "credit": 3000.0,
+            "description": "Debit Note - Price adjustment"
+          }
+        ],
+        "total_debit": 3540.0,
+        "total_credit": 3000.0,
+        "balanced": false,
+        "validation_status": "FAILED"
+      },
+      {
+        "entry_id": "JE-COMB-007",
+        "date": "2024-01-21",
+        "reference": "PAY-001",
+        "description": "Payment - Vendor Payment - Supplier payment",
+        "transaction_type": "Payment",
+        "lines": [
+          {
+            "account": "Accounts Payable",
+            "account_code": "2001",
+            "debit": 45000.0,
+            "credit": 0.0,
+            "description": "Payment to Vendor Payment"
+          },
+          {
+            "account": "Cash/Bank",
+            "account_code": "1001",
+            "debit": 0.0,
+            "credit": 45000.0,
+            "description": "Payment made to Vendor Payment"
+          }
+        ],
+        "total_debit": 45000.0,
+        "total_credit": 45000.0,
+        "balanced": true,
+        "validation_status": "PASSED"
+      },
+      {
+        "entry_id": "JE-COMB-008",
+        "date": "2024-01-22",
+        "reference": "REC-001",
+        "description": "Receipt - Customer Receipt - Customer payment",
+        "transaction_type": "Receipt",
+        "lines": [
+          {
+            "account": "Cash/Bank",
+            "account_code": "1001",
+            "debit": 62000.0,
+            "credit": 0.0,
+            "description": "Receipt from Customer Receipt"
+          },
+          {
+            "account": "Cash",
+            "account_code": "1001",
+            "debit": 0.0,
+            "credit": 62000.0,
+            "description": "Receipt for Customer payment"
+          }
+        ],
+        "total_debit": 62000.0,
+        "total_credit": 62000.0,
+        "balanced": true,
+        "validation_status": "PASSED"
+      }
+    ],
+    "summary": {
+      "total_entries": 8,
+      "passed_entries": 6,
+      "failed_entries": 2,
+      "total_debit": 314840.0,
+      "total_credit": 315740.0,
+      "balanced": false
+    },
+    "validation_checks": {
+      "Double Entry Principle": false,
+      "Account Code Validity": true,
+      "Amount Consistency": false,
+      "Date Format": true,
+      "Reference Numbers": true
+    },
+    "ledger_accounts": {
+      "Inventory": {
+        "debit": 50000.0,
+        "credit": 0.0,
+        "balance": 50000.0
+      },
+      "Input Tax": {
+        "debit": 9000.0,
+        "credit": 0.0,
+        "balance": 9000.0
+      },
+      "Accounts Payable": {
+        "debit": 48540.0,
+        "credit": 59000.0,
+        "balance": -10460.0
+      },
+      "Accounts Receivable": {
+        "debit": 100300.0,
+        "credit": 9440.0,
+        "balance": 90860.0
+      },
+      "Sales Revenue": {
+        "debit": 0.0,
+        "credit": 85000.0,
+        "balance": -85000.0
+      },
+      "Output Tax": {
+        "debit": 0.0,
+        "credit": 15300.0,
+        "balance": -15300.0
+      },
+      "Cash/Bank": {
+        "debit": 74000.0,
+        "credit": 70000.0,
+        "balance": 4000.0
+      },
+      "Interest Income": {
+        "debit": 0.0,
+        "credit": 12000.0,
+        "balance": -12000.0
+      },
+      "Rent Expense": {
+        "debit": 25000.0,
+        "credit": 0.0,
+        "balance": 25000.0
+      },
+      "Sales Returns": {
+        "debit": 8000.0,
+        "credit": 0.0,
+        "balance": 8000.0
+      },
+      "Adjustments": {
+        "debit": 0.0,
+        "credit": 3000.0,
+        "balance": -3000.0
+      },
+      "Cash": {
+        "debit": 0.0,
+        "credit": 62000.0,
+        "balance": -62000.0
+      }
+    },
+    "trial_balance": {
+      "total_debit": 186860.0,
+      "total_credit": 187760.0,
+      "balanced": false
+    }
+  }
+}

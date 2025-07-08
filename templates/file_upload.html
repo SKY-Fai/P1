@@ -1,0 +1,522 @@
+{% extends "base.html" %}
+
+{% block title %}File Upload - AccuFin360{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-upload me-2"></i>Upload Financial Data Files
+                </h4>
+                <p class="text-muted mb-0">Upload Excel or CSV files for automated accounting processing</p>
+            </div>
+            <div class="card-body">
+                <!-- File Upload Form -->
+                <form id="uploadForm" method="POST" action="{{ url_for('main.process_file') }}" enctype="multipart/form-data">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-content text-center py-5">
+                            <i class="fas fa-cloud-upload-alt fa-4x text-primary mb-3"></i>
+                            <h5>Drag & Drop Files Here</h5>
+                            <p class="text-muted">or click to browse files</p>
+                            <input type="file" id="fileInput" name="file" accept=".xlsx,.xls,.csv" class="d-none" required>
+                            <button type="button" class="btn btn-primary" id="browseBtn">
+                                <i class="fas fa-folder-open me-2"></i>Browse Files
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- File Information -->
+                    <div id="fileInfo" class="mt-3" style="display: none;">
+                        <div class="alert alert-info">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-file-excel fa-2x me-3"></i>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1" id="fileName">No file selected</h6>
+                                    <small class="text-muted" id="fileDetails">Size: 0 KB</small>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger" id="removeFile">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Upload Options -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="templateType" class="form-label">Template Type</label>
+                                <select class="form-select" id="templateType" name="template_type">
+                                    <option value="general">General Accounting</option>
+                                    <option value="invoice">Invoice Data</option>
+                                    <option value="inventory">Inventory Management</option>
+                                    <option value="gst">GST Records</option>
+                                    <option value="payroll">Payroll Data</option>
+                                    <option value="custom">Custom Format</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="processingMode" class="form-label">Processing Mode</label>
+                                <select class="form-select" id="processingMode" name="processing_mode">
+                                    <option value="validate_only">Validate Only</option>
+                                    <option value="process_immediately">Process Immediately</option>
+                                    <option value="schedule_later">Schedule for Later</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Options -->
+                    <div class="accordion mt-3" id="advancedOptions">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdvanced">
+                                    <i class="fas fa-cogs me-2"></i>Advanced Options
+                                </button>
+                            </h2>
+                            <div id="collapseAdvanced" class="accordion-collapse collapse" data-bs-parent="#advancedOptions">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Data Validation</label>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="strictValidation" name="strict_validation" checked>
+                                                    <label class="form-check-label" for="strictValidation">
+                                                        Strict validation rules
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="duplicateCheck" name="duplicate_check" checked>
+                                                    <label class="form-check-label" for="duplicateCheck">
+                                                        Check for duplicates
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="autoCorrect" name="auto_correct">
+                                                    <label class="form-check-label" for="autoCorrect">
+                                                        Auto-correct common errors
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Processing Options</label>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="generateReports" name="generate_reports" checked>
+                                                    <label class="form-check-label" for="generateReports">
+                                                        Auto-generate reports
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="emailNotification" name="email_notification">
+                                                    <label class="form-check-label" for="emailNotification">
+                                                        Email when complete
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="backupOriginal" name="backup_original" checked>
+                                                    <label class="form-check-label" for="backupOriginal">
+                                                        Backup original file
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg" id="uploadBtn" disabled>
+                            <i class="fas fa-upload me-2"></i>Upload and Process
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Progress Bar -->
+                <div id="uploadProgress" class="mt-3" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Uploading...</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             id="progressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- File Format Guidelines -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>File Format Guidelines
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-file-excel me-2 text-success"></i>Supported Formats</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Excel files (.xlsx, .xls)</li>
+                            <li><i class="fas fa-check text-success me-2"></i>CSV files (.csv)</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Maximum file size: 500MB</li>
+                            <li><i class="fas fa-check text-success me-2"></i>UTF-8 encoding recommended</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-columns me-2 text-info"></i>Required Columns</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-calendar me-2"></i><strong>Date:</strong> Transaction date</li>
+                            <li><i class="fas fa-align-left me-2"></i><strong>Description:</strong> Transaction description</li>
+                            <li><i class="fas fa-building me-2"></i><strong>Account:</strong> Account name or code</li>
+                            <li><i class="fas fa-dollar-sign me-2"></i><strong>Amount:</strong> Transaction amount</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> Ensure your data is clean and follows the expected format. 
+                    The system will validate your data before processing and highlight any issues.
+                </div>
+                
+                <div class="text-center mt-3">
+                    <div class="dropdown d-inline-block me-2">
+                        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-download me-2"></i>Download Template
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('main.download_template', template_type='general') }}">
+                                <i class="fas fa-file-alt me-2"></i>General Accounting
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.download_template', template_type='invoice') }}">
+                                <i class="fas fa-file-invoice me-2"></i>Invoice Data
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.download_template', template_type='inventory') }}">
+                                <i class="fas fa-boxes me-2"></i>Inventory Management
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.download_template', template_type='gst') }}">
+                                <i class="fas fa-receipt me-2"></i>GST Records
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.download_template', template_type='payroll') }}">
+                                <i class="fas fa-users me-2"></i>Payroll Data
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.download_template', template_type='cash_flow') }}">
+                                <i class="fas fa-money-bill-wave me-2"></i>Cash Flow
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.download_template', template_type='budget') }}">
+                                <i class="fas fa-chart-line me-2"></i>Budget Planning
+                            </a></li>
+                        </ul>
+                    </div>
+                    <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#sampleDataModal">
+                        <i class="fas fa-question-circle me-2"></i>View Sample Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sample Data Modal -->
+<div class="modal fade" id="sampleDataModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-table me-2"></i>Sample Data Format
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Account</th>
+                                <th>Debit</th>
+                                <th>Credit</th>
+                                <th>Reference</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2025-01-01</td>
+                                <td>Office rent payment</td>
+                                <td>Rent Expense</td>
+                                <td>2500.00</td>
+                                <td></td>
+                                <td>CHQ001</td>
+                            </tr>
+                            <tr>
+                                <td>2025-01-01</td>
+                                <td>Office rent payment</td>
+                                <td>Cash</td>
+                                <td></td>
+                                <td>2500.00</td>
+                                <td>CHQ001</td>
+                            </tr>
+                            <tr>
+                                <td>2025-01-02</td>
+                                <td>Sales revenue</td>
+                                <td>Cash</td>
+                                <td>5000.00</td>
+                                <td></td>
+                                <td>INV001</td>
+                            </tr>
+                            <tr>
+                                <td>2025-01-02</td>
+                                <td>Sales revenue</td>
+                                <td>Sales Revenue</td>
+                                <td></td>
+                                <td>5000.00</td>
+                                <td>INV001</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">
+                    <i class="fas fa-download me-2"></i>Download Sample File
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+$(document).ready(function() {
+    const $uploadArea = $('#uploadArea');
+    const $fileInput = $('#fileInput');
+    const $fileInfo = $('#fileInfo');
+    const $uploadBtn = $('#uploadBtn');
+    const $browseBtn = $('#browseBtn');
+    const $uploadForm = $('#uploadForm');
+    
+    // Browse button click
+    $browseBtn.click(function() {
+        $fileInput.click();
+    });
+    
+    // Upload area click
+    $uploadArea.click(function() {
+        $fileInput.click();
+    });
+    
+    // File input change
+    $fileInput.change(function() {
+        handleFileSelect(this.files[0]);
+    });
+    
+    // Drag and drop functionality
+    $uploadArea.on('dragover', function(e) {
+        e.preventDefault();
+        $(this).addClass('drag-over');
+    });
+    
+    $uploadArea.on('dragleave', function(e) {
+        e.preventDefault();
+        $(this).removeClass('drag-over');
+    });
+    
+    $uploadArea.on('drop', function(e) {
+        e.preventDefault();
+        $(this).removeClass('drag-over');
+        
+        const files = e.originalEvent.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelect(files[0]);
+        }
+    });
+    
+    function handleFileSelect(file) {
+        if (!file) return;
+        
+        // Validate file type
+        const allowedTypes = [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-excel',
+            'text/csv'
+        ];
+        
+        if (!allowedTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls|csv)$/i)) {
+            alert('Please select a valid Excel (.xlsx, .xls) or CSV file.');
+            return;
+        }
+        
+        // Validate file size (500MB limit)
+        const maxSize = 500 * 1024 * 1024; // 500MB
+        if (file.size > maxSize) {
+            alert('File size exceeds 500MB limit. Please select a smaller file.');
+            return;
+        }
+        
+        // Display file information
+        $('#fileName').text(file.name);
+        $('#fileDetails').text(`Size: ${formatFileSize(file.size)} | Type: ${getFileType(file.name)}`);
+        $fileInfo.show();
+        $uploadBtn.prop('disabled', false);
+        
+        // Update upload area appearance
+        $uploadArea.addClass('file-selected');
+        $uploadArea.find('.upload-content').html(`
+            <div class="text-center py-3">
+                <i class="fas fa-file-excel fa-3x text-success mb-2"></i>
+                <h6>${file.name}</h6>
+                <p class="text-muted mb-0">${formatFileSize(file.size)}</p>
+            </div>
+        `);
+    }
+    
+    // Remove file
+    $('#removeFile').click(function() {
+        $fileInput.val('');
+        $fileInfo.hide();
+        $uploadBtn.prop('disabled', true);
+        $uploadArea.removeClass('file-selected');
+        $uploadArea.find('.upload-content').html(`
+            <i class="fas fa-cloud-upload-alt fa-4x text-primary mb-3"></i>
+            <h5>Drag & Drop Files Here</h5>
+            <p class="text-muted">or click to browse files</p>
+            <button type="button" class="btn btn-primary" id="browseBtn">
+                <i class="fas fa-folder-open me-2"></i>Browse Files
+            </button>
+        `);
+        
+        // Re-bind browse button
+        $('#browseBtn').click(function() {
+            $fileInput.click();
+        });
+    });
+    
+    // Form submission
+    $uploadForm.submit(function(e) {
+        e.preventDefault();
+        
+        if (!$fileInput[0].files[0]) {
+            alert('Please select a file to upload.');
+            return;
+        }
+        
+        // Show progress
+        $('#uploadProgress').show();
+        $uploadBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Uploading...');
+        
+        // Simulate upload progress
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 90) progress = 90;
+            
+            $('#progressBar').css('width', progress + '%');
+            $('#progressPercent').text(Math.round(progress) + '%');
+        }, 200);
+        
+        // Create FormData and submit
+        const formData = new FormData(this);
+        
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                clearInterval(progressInterval);
+                $('#progressBar').css('width', '100%');
+                $('#progressPercent').text('100%');
+                
+                setTimeout(() => {
+                    window.location.href = response.redirect_url || '/validate-data/' + response.file_id;
+                }, 1000);
+            },
+            error: function(xhr, status, error) {
+                clearInterval(progressInterval);
+                $('#uploadProgress').hide();
+                $uploadBtn.prop('disabled', false).html('<i class="fas fa-upload me-2"></i>Upload and Process');
+                
+                const errorMsg = xhr.responseJSON?.message || 'Upload failed. Please try again.';
+                alert('Error: ' + errorMsg);
+            }
+        });
+    });
+    
+    // View sample data
+    $('[data-bs-toggle="modal"][data-bs-target="#sampleDataModal"]').click(function() {
+        $('#sampleDataModal').modal('show');
+    });
+    
+    // Helper functions
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    function getFileType(filename) {
+        const extension = filename.split('.').pop().toLowerCase();
+        switch (extension) {
+            case 'xlsx':
+                return 'Excel Workbook';
+            case 'xls':
+                return 'Excel 97-2003';
+            case 'csv':
+                return 'Comma Separated Values';
+            default:
+                return 'Unknown';
+        }
+    }
+});
+</script>
+
+<style>
+.upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.upload-area:hover,
+.upload-area.drag-over {
+    border-color: #007bff;
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.upload-area.file-selected {
+    border-color: #28a745;
+    background-color: rgba(40, 167, 69, 0.05);
+}
+
+.progress-bar-animated {
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+    0% {
+        background-position-x: 1rem;
+    }
+}
+</style>
+{% endblock %}

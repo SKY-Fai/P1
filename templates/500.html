@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - AccuFin360{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Internal Server Error
+                    </h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-server fa-4x text-danger mb-3"></i>
+                        <h2>Something went wrong</h2>
+                        <p class="text-muted">
+                            We encountered an internal server error while processing your request. 
+                            Our technical team has been notified and is working to resolve this issue.
+                        </p>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">
+                            <i class="fas fa-home me-2"></i>Go to Dashboard
+                        </a>
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Go Back
+                        </a>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <p class="small text-muted">
+                            If this problem persists, please contact our support team.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,561 @@
+{% extends "base.html" %}
+
+{% block title %}Reports Portal - AccuFin360{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-chart-line me-2"></i>Financial Reports Portal
+            </h2>
+            <div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+                    <i class="fas fa-plus me-2"></i>Generate Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Categories -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-balance-scale fa-3x text-primary mb-3"></i>
+                <h5>Balance Sheet</h5>
+                <p class="text-muted">Assets, liabilities, and equity statement</p>
+                <button class="btn btn-primary btn-sm" data-report-type="balance_sheet" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+                    Generate
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                <h5>Income Statement</h5>
+                <p class="text-muted">Profit & loss statement</p>
+                <button class="btn btn-success btn-sm" data-report-type="income_statement" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+                    Generate
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-water fa-3x text-info mb-3"></i>
+                <h5>Cash Flow</h5>
+                <p class="text-muted">Cash flows from operations, investing, financing</p>
+                <button class="btn btn-info btn-sm" data-report-type="cash_flow" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+                    Generate
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-list-alt fa-3x text-warning mb-3"></i>
+                <h5>Trial Balance</h5>
+                <p class="text-muted">Summary of all account balances</p>
+                <button class="btn btn-warning btn-sm" data-report-type="trial_balance" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+                    Generate
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Reports -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-book fa-3x text-secondary mb-3"></i>
+                <h5>Journal Entries</h5>
+                <p class="text-muted">Detailed journal entry listing</p>
+                <button class="btn btn-secondary btn-sm" data-report-type="journal_entries" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+                    Generate
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-chart-bar fa-3x text-dark mb-3"></i>
+                <h5>Ledger Summary</h5>
+                <p class="text-muted">Account-wise summary report</p>
+                <button class="btn btn-dark btn-sm" data-report-type="ledger_summary" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+                    Generate
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-receipt fa-3x text-danger mb-3"></i>
+                <h5>GST Reports</h5>
+                <p class="text-muted">GST compliance and tax reports</p>
+                <button class="btn btn-danger btn-sm" data-report-type="gst_summary" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+                    Generate
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-cogs fa-3x text-muted mb-3"></i>
+                <h5>Custom Report</h5>
+                <p class="text-muted">Build your own custom report</p>
+                <button class="btn btn-outline-primary btn-sm" data-report-type="custom" data-bs-toggle="modal" data-bs-target="#customReportModal">
+                    Build
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Generated Reports List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt me-2"></i>Generated Reports
+                    </h5>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="filter-today">Today</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="filter-week">This Week</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="filter-month">This Month</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary active" id="filter-all">All</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if reports %}
+                <div class="table-responsive">
+                    <table class="table table-striped" id="reportsTable">
+                        <thead>
+                            <tr>
+                                <th>Report Type</th>
+                                <th>Period</th>
+                                <th>Generated By</th>
+                                <th>Generated On</th>
+                                <th>File Size</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in reports %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-{{ 
+                                            'balance-scale' if report.report_type == 'balance_sheet' else
+                                            'chart-line' if report.report_type == 'income_statement' else
+                                            'water' if report.report_type == 'cash_flow' else
+                                            'list-alt' if report.report_type == 'trial_balance' else
+                                            'book' if report.report_type == 'journal_entries' else
+                                            'chart-bar' if report.report_type == 'ledger_summary' else
+                                            'file-alt'
+                                        }} me-2"></i>
+                                        <div>
+                                            <div class="fw-bold">{{ report.report_type.replace('_', ' ').title() }}</div>
+                                            <small class="text-muted">{{ report.report_type }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ report.report_period }}</span>
+                                </td>
+                                <td>{{ report.generated_by_user.get_full_name() if report.generated_by_user else 'System' }}</td>
+                                <td>{{ report.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if report.file_path %}
+                                    <small class="text-muted">Excel Format</small>
+                                    {% else %}
+                                    <small class="text-muted">N/A</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">Ready</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        {% if report.file_path %}
+                                        <a href="{{ url_for('main.download_report', report_id=report.id) }}" 
+                                           class="btn btn-sm btn-outline-primary" title="Download Report">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        {% endif %}
+                                        <button type="button" class="btn btn-sm btn-outline-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-success" title="Share Report">
+                                            <i class="fas fa-share"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Reports Generated Yet</h4>
+                    <p class="text-muted">Start by generating your first financial report using the options above.</p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+                        <i class="fas fa-plus me-2"></i>Generate First Report
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Generate Report Modal -->
+<div class="modal fade" id="generateReportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus me-2"></i>Generate Financial Report
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="generateReportForm">
+                    <div class="mb-3">
+                        <label for="report_type" class="form-label">Report Type</label>
+                        <select class="form-select" id="report_type" name="report_type" required>
+                            <option value="">Select Report Type</option>
+                            <option value="balance_sheet">Balance Sheet</option>
+                            <option value="income_statement">Income Statement</option>
+                            <option value="cash_flow">Cash Flow Statement</option>
+                            <option value="trial_balance">Trial Balance</option>
+                            <option value="journal_entries">Journal Entries</option>
+                            <option value="ledger_summary">Ledger Summary</option>
+                            <option value="gst_summary">GST Summary</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="period_type" class="form-label">Period Type</label>
+                        <select class="form-select" id="period_type" name="period_type" required>
+                            <option value="monthly">Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="yearly">Yearly</option>
+                            <option value="custom">Custom Date Range</option>
+                        </select>
+                    </div>
+                    
+                    <div class="row" id="date-fields" style="display: none;">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="date_from" class="form-label">From Date</label>
+                                <input type="date" class="form-control" id="date_from" name="date_from">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="date_to" class="form-label">To Date</label>
+                                <input type="date" class="form-control" id="date_to" name="date_to">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3" id="period-selector">
+                        <label for="report_period" class="form-label">Select Period</label>
+                        <select class="form-select" id="report_period" name="report_period" required>
+                            <!-- Options will be populated based on period type -->
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="format" class="form-label">Export Format</label>
+                        <select class="form-select" id="format" name="format">
+                            <option value="excel">Excel (.xlsx)</option>
+                            <option value="pdf">PDF</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="include_details" name="include_details" checked>
+                            <label class="form-check-label" for="include_details">
+                                Include detailed breakdown
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="email_report" name="email_report">
+                            <label class="form-check-label" for="email_report">
+                                Email report when ready
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="generate-report">
+                    <i class="fas fa-cogs me-1"></i>Generate Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Report Builder Modal -->
+<div class="modal fade" id="customReportModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-cogs me-2"></i>Custom Report Builder
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="customReportForm">
+                    <div class="mb-3">
+                        <label for="custom_report_name" class="form-label">Report Name</label>
+                        <input type="text" class="form-control" id="custom_report_name" name="report_name" placeholder="Enter report name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Select Data Sources</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="source_journal" value="journal_entries">
+                                    <label class="form-check-label" for="source_journal">
+                                        Journal Entries
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="source_accounts" value="chart_of_accounts">
+                                    <label class="form-check-label" for="source_accounts">
+                                        Chart of Accounts
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="source_invoices" value="invoices">
+                                    <label class="form-check-label" for="source_invoices">
+                                        Invoices
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="source_inventory" value="inventory">
+                                    <label class="form-check-label" for="source_inventory">
+                                        Inventory Items
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="source_gst" value="gst_records">
+                                    <label class="form-check-label" for="source_gst">
+                                        GST Records
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="source_audit" value="audit_logs">
+                                    <label class="form-check-label" for="source_audit">
+                                        Audit Logs
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Filters</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="filter_date_from" class="form-label">From Date</label>
+                                <input type="date" class="form-control" id="filter_date_from" name="filter_date_from">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="filter_date_to" class="form-label">To Date</label>
+                                <input type="date" class="form-control" id="filter_date_to" name="filter_date_to">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Grouping & Aggregation</label>
+                        <select class="form-select" id="grouping" name="grouping">
+                            <option value="">No Grouping</option>
+                            <option value="account">Group by Account</option>
+                            <option value="date">Group by Date</option>
+                            <option value="month">Group by Month</option>
+                            <option value="quarter">Group by Quarter</option>
+                        </select>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Custom reports allow you to combine data from multiple sources with flexible filtering and grouping options.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="build-custom-report">
+                    <i class="fas fa-hammer me-1"></i>Build Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+$(document).ready(function() {
+    // Initialize DataTable
+    $('#reportsTable').DataTable({
+        pageLength: 10,
+        order: [[3, 'desc']],
+        language: {
+            search: "Search reports:",
+            lengthMenu: "Show _MENU_ reports per page",
+            info: "Showing _START_ to _END_ of _TOTAL_ reports"
+        }
+    });
+    
+    // Report type quick select
+    $('[data-report-type]').click(function() {
+        const reportType = $(this).data('report-type');
+        $('#report_type').val(reportType);
+    });
+    
+    // Period type change handler
+    $('#period_type').change(function() {
+        const periodType = $(this).val();
+        
+        if (periodType === 'custom') {
+            $('#date-fields').show();
+            $('#period-selector').hide();
+        } else {
+            $('#date-fields').hide();
+            $('#period-selector').show();
+            updatePeriodOptions(periodType);
+        }
+    });
+    
+    function updatePeriodOptions(periodType) {
+        const periodSelect = $('#report_period');
+        periodSelect.empty();
+        
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth();
+        
+        if (periodType === 'monthly') {
+            for (let i = 0; i < 12; i++) {
+                const month = new Date(currentYear, currentMonth - i, 1);
+                const monthStr = month.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                const value = month.toISOString().substr(0, 7);
+                periodSelect.append(new Option(monthStr, value));
+            }
+        } else if (periodType === 'quarterly') {
+            for (let i = 0; i < 8; i++) {
+                const quarter = Math.floor((currentMonth - (i * 3)) / 3) + 1;
+                const year = currentYear - Math.floor(i / 4);
+                const quarterStr = `Q${quarter} ${year}`;
+                const value = `${year}-Q${quarter}`;
+                periodSelect.append(new Option(quarterStr, value));
+            }
+        } else if (periodType === 'yearly') {
+            for (let i = 0; i < 5; i++) {
+                const year = currentYear - i;
+                periodSelect.append(new Option(year.toString(), year.toString()));
+            }
+        }
+    }
+    
+    // Initialize with monthly options
+    updatePeriodOptions('monthly');
+    
+    // Generate report
+    $('#generate-report').click(function() {
+        const form = $('#generateReportForm');
+        if (form[0].checkValidity()) {
+            // Show loading state
+            $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Generating...');
+            
+            // Simulate report generation
+            setTimeout(() => {
+                alert('Report generated successfully! Check the reports list below.');
+                $('#generateReportModal').modal('hide');
+                $(this).prop('disabled', false).html('<i class="fas fa-cogs me-1"></i>Generate Report');
+                
+                // Refresh the page to show the new report
+                location.reload();
+            }, 3000);
+        } else {
+            form[0].reportValidity();
+        }
+    });
+    
+    // Build custom report
+    $('#build-custom-report').click(function() {
+        const form = $('#customReportForm');
+        if (form[0].checkValidity()) {
+            // Show loading state
+            $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Building...');
+            
+            // Simulate custom report building
+            setTimeout(() => {
+                alert('Custom report built successfully!');
+                $('#customReportModal').modal('hide');
+                $(this).prop('disabled', false).html('<i class="fas fa-hammer me-1"></i>Build Report');
+            }, 2000);
+        } else {
+            form[0].reportValidity();
+        }
+    });
+    
+    // Filter buttons
+    $('.btn-group .btn').click(function() {
+        $(this).siblings().removeClass('active');
+        $(this).addClass('active');
+        
+        const filter = $(this).attr('id').replace('filter-', '');
+        console.log('Filtering by:', filter);
+        // Implement actual filtering logic here
+    });
+    
+    // Set default dates
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    
+    $('#date_from, #filter_date_from').val(firstDayOfMonth.toISOString().split('T')[0]);
+    $('#date_to, #filter_date_to').val(today.toISOString().split('T')[0]);
+});
+</script>
+{% endblock %}

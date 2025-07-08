@@ -1,0 +1,599 @@
+{% extends "base.html" %}
+
+{% block title %}File Interaction - F-AI Accountant{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        /* Black & White Theme with Lightest Blue Background */
+        --lightest-blue: #f0f8ff;
+        --pure-black: #000000;
+        --pure-white: #ffffff;
+        --light-gray: #f5f5f5;
+        --border-gray: #dddddd;
+        --dark-gray: #333333;
+        --text-black: #000000;
+        --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --radius-lg: 12px;
+    }
+
+    /* Page Layout */
+    body {
+        background: var(--lightest-blue) !important;
+    }
+
+    .dashboard-container {
+        background: var(--lightest-blue);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    /* Card Styling */
+    .card {
+        background: var(--pure-white);
+        border: 1px solid var(--border-gray);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-subtle);
+        transition: all 0.3s ease;
+        margin-bottom: 2rem;
+        color: var(--text-black);
+    }
+
+    .card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .card-header {
+        background: var(--pure-black) !important;
+        border-bottom: 1px solid var(--border-gray);
+        color: var(--pure-white) !important;
+    }
+
+    .card-header h1, .card-header h2, .card-header h3, .card-header h4, .card-header h5, .card-header h6,
+    .card-header p, .card-header span, .card-header small {
+        color: var(--pure-white) !important;
+    }
+
+    /* Text on dark backgrounds */
+    .bg-dark, .bg-black, .bg-primary, .bg-secondary, .bg-success, .bg-danger, .bg-warning, .bg-info {
+        color: var(--pure-white) !important;
+    }
+
+    .bg-dark *, .bg-black *, .bg-primary *, .bg-secondary *, .bg-success *, .bg-danger *, .bg-warning *, .bg-info * {
+        color: var(--pure-white) !important;
+    }
+        padding: 1rem 1.5rem;
+        border-radius: var(--radius) var(--radius) 0 0;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .card-header h5 {
+        color: var(--pure-white) !important;
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+        color: var(--text-black);
+    }
+
+    /* Buttons */
+    .btn {
+        border-radius: var(--radius);
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .btn-primary {
+        background: var(--pure-black);
+        color: var(--pure-white);
+        border-color: var(--pure-black);
+    }
+
+    .btn-primary:hover {
+        background: var(--dark-gray);
+        border-color: var(--dark-gray);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-outline-primary {
+        background: transparent;
+        color: var(--pure-black);
+        border-color: var(--pure-black);
+    }
+
+    .btn-outline-primary:hover {
+        background: var(--pure-black);
+        color: var(--pure-white);
+        border-color: var(--pure-black);
+    }
+
+    /* Folder specific styles */
+    .folder-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .folder-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+    }
+    
+    .folder-upload-card {
+        position: relative;
+    }
+    
+    .file-count-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+        background: var(--pure-black);
+        color: var(--pure-white);
+    }
+    
+    .btn-upload-folder {
+        width: 100%;
+        font-weight: 600;
+        border-width: 2px;
+    }
+    
+    .progress-container {
+        margin-top: 20px;
+        display: none;
+    }
+    
+    .upload-summary {
+        margin-top: 20px;
+        display: none;
+    }
+    
+    .folder-stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 15px;
+        padding: 10px;
+        background: var(--light-gray);
+            border-radius: 8px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--bs-primary);
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--bs-secondary);
+            margin-top: 2px;
+        }
+        
+        .feature-highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .feature-highlight h1, .feature-highlight h2, .feature-highlight h3, .feature-highlight h4, .feature-highlight h5, .feature-highlight h6,
+        .feature-highlight p, .feature-highlight span, .feature-highlight small, .feature-highlight div {
+            color: white !important;
+        }
+
+        .feature-highlight .feature-stat h3,
+        .feature-highlight .feature-stat small {
+            color: inherit !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid py-4">
+        <!-- Professional Header -->
+        <div class="feature-highlight text-center">
+            <div class="mb-4">
+                <i class="fas fa-folder-open display-3 mb-3" style="opacity: 0.9;"></i>
+            </div>
+            <h1 class="display-4 fw-bold mb-4">
+                File Interaction Center
+            </h1>
+            <p class="lead fs-4 mb-4" style="opacity: 0.9;">
+                Advanced Organized Upload System for Bulk File Processing
+            </p>
+            <div class="row text-center mt-4">
+                <div class="col-md-3">
+                    <div class="feature-stat">
+                        <h3 class="mb-1" style="color: #FFD700;">Organized</h3>
+                        <small style="opacity: 0.8;">Folder Structure</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="feature-stat">
+                        <h3 class="mb-1" style="color: #98FB98;">Bulk</h3>
+                        <small style="opacity: 0.8;">File Processing</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="feature-stat">
+                        <h3 class="mb-1" style="color: #87CEEB;">Category</h3>
+                        <small style="opacity: 0.8;">Auto-Classification</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="feature-stat">
+                        <h3 class="mb-1" style="color: #DDA0DD;">Professional</h3>
+                        <small style="opacity: 0.8;">Organization</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dual Upload System Section -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="card border-0 shadow">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-cloud-upload-alt me-3 fs-4"></i>
+                            <div>
+                                <h3 class="mb-1">Complete Upload System</h3>
+                                <p class="mb-0 opacity-75">Single file processing and organized bulk folder upload</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Side-by-Side Upload Options -->
+                        <div class="row mb-5">
+                            <div class="col-lg-6 mb-4">
+                                <div class="card h-100 border-3" style="border-color: #007bff !important; box-shadow: 0 8px 20px rgba(0,123,255,0.15);">
+                                    <div class="card-header bg-primary text-white text-center">
+                                        <h4 class="mb-0"><i class="fas fa-file-upload me-2"></i>Quick Upload</h4>
+                                    </div>
+                                    <div class="card-body text-center p-4">
+                                        <i class="fas fa-file-upload fa-4x text-primary mb-4" style="opacity: 0.8;"></i>
+                                        <h5 class="text-primary mb-3">Single File Processing</h5>
+                                        <p class="text-muted mb-4">Upload and process individual Excel/CSV files instantly with our AI-powered accounting engine.</p>
+                                        <a href="{{ url_for('main.upload_file') }}" class="btn btn-primary btn-lg px-4">
+                                            <i class="fas fa-upload me-2"></i>Upload Single File
+                                        </a>
+                                        <div class="mt-3">
+                                            <small class="text-muted">Supports: .xlsx, .xls, .csv</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 mb-4">
+                                <div class="card h-100 border-3" style="border-color: #28a745 !important; box-shadow: 0 8px 20px rgba(40,167,69,0.15);">
+                                    <div class="card-header bg-success text-white text-center">
+                                        <h4 class="mb-0"><i class="fas fa-folder-open me-2"></i>Organized Upload</h4>
+                                    </div>
+                                    <div class="card-body text-center p-4">
+                                        <i class="fas fa-folder-open fa-4x text-success mb-4" style="opacity: 0.8;"></i>
+                                        <h5 class="text-success mb-3">Bulk Folder Processing</h5>
+                                        <p class="text-muted mb-4">Upload multiple files organized in folders for streamlined bulk processing and automated categorization.</p>
+                                        <button class="btn btn-success btn-lg px-4" onclick="document.getElementById('organized-upload').scrollIntoView({behavior: 'smooth'})">
+                                            <i class="fas fa-folders me-2"></i>View Folders Below
+                                        </button>
+                                        <div class="mt-3">
+                                            <small class="text-muted">6+ organized categories</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-12 mb-4">
+                                <div class="alert alert-info border-0">
+                                    <h6 class="alert-heading"><i class="fas fa-lightbulb me-2"></i>Professional Data Organization</h6>
+                                    <p class="mb-0">Upload files to organized folders for streamlined processing. Each folder automatically categorizes your data for efficient analysis.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Folder Structure Grid -->
+                        <div class="row g-3" id="organized-upload">
+                            <!-- Sales Folder -->
+                            <div class="col-lg-4 col-md-6">
+                                <div class="folder-upload-card" data-folder="sales">
+                                    <div class="card h-100 border-2 folder-card" style="border-color: #28a745 !important;">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-cash-register fa-3x text-success mb-3"></i>
+                                            <h5 class="card-title text-success">Sales</h5>
+                                            <p class="card-text text-muted">Invoices, receipts, revenue documents</p>
+                                            <input type="file" class="d-none folder-file-input" multiple accept=".xlsx,.xls,.csv,.pdf,.zip">
+                                            <button class="btn btn-outline-success btn-upload-folder">
+                                                <i class="fas fa-upload me-2"></i>Upload Files
+                                            </button>
+                                            <div class="file-count-badge" style="display: none;">
+                                                <span class="badge bg-success">0 files</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Purchase Folder -->
+                            <div class="col-lg-4 col-md-6">
+                                <div class="folder-upload-card" data-folder="purchase">
+                                    <div class="card h-100 border-2 folder-card" style="border-color: #dc3545 !important;">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-shopping-cart fa-3x text-danger mb-3"></i>
+                                            <h5 class="card-title text-danger">Purchase</h5>
+                                            <p class="card-text text-muted">Bills, purchase orders, vendor invoices</p>
+                                            <input type="file" class="d-none folder-file-input" multiple accept=".xlsx,.xls,.csv,.pdf,.zip">
+                                            <button class="btn btn-outline-danger btn-upload-folder">
+                                                <i class="fas fa-upload me-2"></i>Upload Files
+                                            </button>
+                                            <div class="file-count-badge" style="display: none;">
+                                                <span class="badge bg-danger">0 files</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Income Folder -->
+                            <div class="col-lg-4 col-md-6">
+                                <div class="folder-upload-card" data-folder="income">
+                                    <div class="card h-100 border-2 folder-card" style="border-color: #17a2b8 !important;">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-coins fa-3x text-info mb-3"></i>
+                                            <h5 class="card-title text-info">Income</h5>
+                                            <p class="card-text text-muted">Other income, investments, gains</p>
+                                            <input type="file" class="d-none folder-file-input" multiple accept=".xlsx,.xls,.csv,.pdf,.zip">
+                                            <button class="btn btn-outline-info btn-upload-folder">
+                                                <i class="fas fa-upload me-2"></i>Upload Files
+                                            </button>
+                                            <div class="file-count-badge" style="display: none;">
+                                                <span class="badge bg-info">0 files</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Expense Folder -->
+                            <div class="col-lg-4 col-md-6">
+                                <div class="folder-upload-card" data-folder="expense">
+                                    <div class="card h-100 border-2 folder-card" style="border-color: #ffc107 !important;">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-receipt fa-3x text-warning mb-3"></i>
+                                            <h5 class="card-title text-warning">Expense</h5>
+                                            <p class="card-text text-muted">Operating expenses, utilities, supplies</p>
+                                            <input type="file" class="d-none folder-file-input" multiple accept=".xlsx,.xls,.csv,.pdf,.zip">
+                                            <button class="btn btn-outline-warning btn-upload-folder">
+                                                <i class="fas fa-upload me-2"></i>Upload Files
+                                            </button>
+                                            <div class="file-count-badge" style="display: none;">
+                                                <span class="badge bg-warning">0 files</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Payroll Folder -->
+                            <div class="col-lg-4 col-md-6">
+                                <div class="folder-upload-card" data-folder="payroll">
+                                    <div class="card h-100 border-2 folder-card" style="border-color: #6f42c1 !important;">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                                            <h5 class="card-title text-primary">Payroll</h5>
+                                            <p class="card-text text-muted">Salary sheets, tax deductions, benefits</p>
+                                            <input type="file" class="d-none folder-file-input" multiple accept=".xlsx,.xls,.csv,.pdf,.zip">
+                                            <button class="btn btn-outline-primary btn-upload-folder">
+                                                <i class="fas fa-upload me-2"></i>Upload Files
+                                            </button>
+                                            <div class="file-count-badge" style="display: none;">
+                                                <span class="badge bg-primary">0 files</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bank Statements Folder -->
+                            <div class="col-lg-4 col-md-6">
+                                <div class="folder-upload-card" data-folder="bank">
+                                    <div class="card h-100 border-2 folder-card" style="border-color: #20c997 !important;">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-university fa-3x text-teal mb-3"></i>
+                                            <h5 class="card-title text-teal">Bank Statements</h5>
+                                            <p class="card-text text-muted">Bank statements, reconciliation data</p>
+                                            <input type="file" class="d-none folder-file-input" multiple accept=".xlsx,.xls,.csv,.pdf,.zip">
+                                            <button class="btn btn-outline-teal btn-upload-folder">
+                                                <i class="fas fa-upload me-2"></i>Upload Files
+                                            </button>
+                                            <div class="file-count-badge" style="display: none;">
+                                                <span class="badge bg-teal">0 files</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Upload Progress Section -->
+                        <div class="progress-container">
+                            <div class="card border-info mt-4">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0"><i class="fas fa-cloud-upload-alt me-2"></i>Upload Progress</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="progress mb-3" style="height: 25px;">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                    <div class="upload-status">
+                                        <small class="text-muted">Ready to upload...</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Upload Summary -->
+                        <div class="upload-summary">
+                            <div class="card border-success mt-4">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-check-circle me-2"></i>Upload Summary</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row" id="summaryContent">
+                                        <!-- Summary will be populated by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Processing Options -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-cogs me-2"></i>Processing Options</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="autoClassify" checked>
+                                                    <label class="form-check-label" for="autoClassify">
+                                                        <strong>Auto-classify transactions</strong>
+                                                        <br><small class="text-muted">Automatically categorize based on folder selection</small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="generateReports" checked>
+                                                    <label class="form-check-label" for="generateReports">
+                                                        <strong>Generate financial reports</strong>
+                                                        <br><small class="text-muted">Create comprehensive financial analysis</small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <button class="btn btn-success btn-lg" id="processAllFiles" disabled>
+                                                    <i class="fas fa-play me-2"></i>Process All Uploaded Files
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Organized Upload System JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Initializing organized upload system...');
+            
+            let uploadedFiles = {};
+            
+            // Handle folder upload buttons
+            document.querySelectorAll('.btn-upload-folder').forEach(button => {
+                button.addEventListener('click', function() {
+                    const folderCard = this.closest('.folder-upload-card');
+                    const folderType = folderCard.dataset.folder;
+                    const fileInput = folderCard.querySelector('.folder-file-input');
+                    
+                    fileInput.click();
+                });
+            });
+            
+            // Handle file selection
+            document.querySelectorAll('.folder-file-input').forEach(input => {
+                input.addEventListener('change', function() {
+                    const folderCard = this.closest('.folder-upload-card');
+                    const folderType = folderCard.dataset.folder;
+                    const fileCountBadge = folderCard.querySelector('.file-count-badge');
+                    const badge = fileCountBadge.querySelector('.badge');
+                    
+                    if (this.files.length > 0) {
+                        uploadedFiles[folderType] = Array.from(this.files);
+                        fileCountBadge.style.display = 'block';
+                        badge.textContent = `${this.files.length} files`;
+                        
+                        updateProcessButton();
+                        showUploadProgress(folderType, this.files);
+                    }
+                });
+            });
+            
+            function updateProcessButton() {
+                const processButton = document.getElementById('processAllFiles');
+                const totalFiles = Object.values(uploadedFiles).reduce((total, files) => total + files.length, 0);
+                
+                if (totalFiles > 0) {
+                    processButton.disabled = false;
+                    processButton.innerHTML = `<i class="fas fa-play me-2"></i>Process ${totalFiles} Files`;
+                } else {
+                    processButton.disabled = true;
+                    processButton.innerHTML = '<i class="fas fa-play me-2"></i>Process All Uploaded Files';
+                }
+            }
+            
+            function showUploadProgress(folderType, files) {
+                const progressContainer = document.querySelector('.progress-container');
+                const uploadSummary = document.querySelector('.upload-summary');
+                
+                progressContainer.style.display = 'block';
+                uploadSummary.style.display = 'block';
+                
+                updateUploadSummary();
+            }
+            
+            function updateUploadSummary() {
+                const summaryContent = document.getElementById('summaryContent');
+                summaryContent.innerHTML = '';
+                
+                Object.entries(uploadedFiles).forEach(([folderType, files]) => {
+                    const folderStats = document.createElement('div');
+                    folderStats.className = 'col-md-4 mb-3';
+                    folderStats.innerHTML = `
+                        <div class="folder-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">${files.length}</div>
+                                <div class="stat-label">${folderType.charAt(0).toUpperCase() + folderType.slice(1)} Files</div>
+                            </div>
+                        </div>
+                    `;
+                    summaryContent.appendChild(folderStats);
+                });
+            }
+            
+            // Handle process all files button
+            document.getElementById('processAllFiles').addEventListener('click', function() {
+                const autoClassify = document.getElementById('autoClassify').checked;
+                const generateReports = document.getElementById('generateReports').checked;
+                
+                console.log('Processing all files with options:', { autoClassify, generateReports });
+                
+                // Here you would implement the actual file processing logic
+                // For now, show a success message
+                alert(`Processing ${Object.values(uploadedFiles).reduce((total, files) => total + files.length, 0)} files with organized classification!`);
+            });
+        });
+    </script>
+{% endblock %}

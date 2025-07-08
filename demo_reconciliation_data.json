@@ -1,0 +1,323 @@
+{
+  "transactions": [
+    {
+      "id": "TXN0001",
+      "date": "2025-06-14",
+      "description": "NEFT CR ABC TECHNOLOGIES INV2024-001 SOFTWARE PAYMENT",
+      "amount": 50150,
+      "type": "credit",
+      "status": "matched",
+      "confidence": 97,
+      "matched_invoice": "INV2024-001",
+      "reference": "REF610670"
+    },
+    {
+      "id": "TXN0002",
+      "date": "2025-07-02",
+      "description": "UPI DR XYZ OFFICE BILL5678 FURNITURE",
+      "amount": -12432,
+      "type": "debit",
+      "status": "matched",
+      "confidence": 85,
+      "matched_invoice": "INV2024-002",
+      "reference": "REF861490"
+    },
+    {
+      "id": "TXN0003",
+      "date": "2025-06-28",
+      "description": "SALARY TRANSFER EMPLOYEES JAN2024",
+      "amount": -120214,
+      "type": "debit",
+      "status": "matched",
+      "confidence": 95,
+      "matched_invoice": "INV2024-003",
+      "reference": "REF411856"
+    },
+    {
+      "id": "TXN0004",
+      "date": "2025-06-27",
+      "description": "NEFT CR CLIENT PAYMENT INV2024-002",
+      "amount": 72596,
+      "type": "credit",
+      "status": "matched",
+      "confidence": 91,
+      "matched_invoice": "INV2024-004",
+      "reference": "REF290728"
+    },
+    {
+      "id": "TXN0005",
+      "date": "2025-06-29",
+      "description": "RTGS DR RENT PAYMENT JAN2024",
+      "amount": -26054,
+      "type": "debit",
+      "status": "matched",
+      "confidence": 91,
+      "matched_invoice": "INV2024-005",
+      "reference": "REF301551"
+    },
+    {
+      "id": "TXN0006",
+      "date": "2025-07-03",
+      "description": "UPI CR CONSULTING SERVICES PAYMENT",
+      "amount": 34845,
+      "type": "credit",
+      "status": "matched",
+      "confidence": 93,
+      "matched_invoice": "INV2024-006",
+      "reference": "REF236486"
+    },
+    {
+      "id": "TXN0007",
+      "date": "2025-07-01",
+      "description": "IMPS DR UTILITIES ELECTRICITY BILL",
+      "amount": -8240,
+      "type": "debit",
+      "status": "matched",
+      "confidence": 94,
+      "matched_invoice": "INV2024-007",
+      "reference": "REF330647"
+    },
+    {
+      "id": "TXN0008",
+      "date": "2025-06-25",
+      "description": "NEFT CR PRODUCT SALES INVOICE2024-003",
+      "amount": 88039,
+      "type": "credit",
+      "status": "matched",
+      "confidence": 89,
+      "matched_invoice": "INV2024-008",
+      "reference": "REF688712"
+    },
+    {
+      "id": "TXN0009",
+      "date": "2025-06-18",
+      "description": "CHEQUE DR VENDOR PAYMENT SUPPLIES",
+      "amount": -17246,
+      "type": "debit",
+      "status": "unmatched",
+      "confidence": 48,
+      "matched_invoice": null,
+      "reference": "REF879792"
+    },
+    {
+      "id": "TXN0010",
+      "date": "2025-07-01",
+      "description": "UPI DR TRAVEL EXPENSES REIMBURSE",
+      "amount": -5628,
+      "type": "debit",
+      "status": "unmatched",
+      "confidence": 54,
+      "matched_invoice": null,
+      "reference": "REF234158"
+    },
+    {
+      "id": "TXN0011",
+      "date": "2025-06-14",
+      "description": "NEFT CR SUBSCRIPTION REVENUE JAN2024",
+      "amount": 44305,
+      "type": "credit",
+      "status": "unmatched",
+      "confidence": 55,
+      "matched_invoice": null,
+      "reference": "REF958535"
+    },
+    {
+      "id": "TXN0012",
+      "date": "2025-06-22",
+      "description": "RTGS DR LOAN EMI PAYMENT",
+      "amount": -15070,
+      "type": "debit",
+      "status": "unmatched",
+      "confidence": 50,
+      "matched_invoice": null,
+      "reference": "REF254829"
+    },
+    {
+      "id": "TXN0013",
+      "date": "2025-06-25",
+      "description": "UPI CR FREELANCE PAYMENT PROJECT",
+      "amount": 21647,
+      "type": "credit",
+      "status": "doubtful",
+      "confidence": 67,
+      "matched_invoice": "PARTIAL-013",
+      "reference": "REF741569"
+    },
+    {
+      "id": "TXN0014",
+      "date": "2025-06-25",
+      "description": "IMPS DR INSURANCE PREMIUM",
+      "amount": -12150,
+      "type": "debit",
+      "status": "doubtful",
+      "confidence": 66,
+      "matched_invoice": "PARTIAL-014",
+      "reference": "REF957700"
+    },
+    {
+      "id": "TXN0015",
+      "date": "2025-07-04",
+      "description": "BANK CHARGES TRANSACTION FEES",
+      "amount": -245,
+      "type": "debit",
+      "status": "doubtful",
+      "confidence": 75,
+      "matched_invoice": "PARTIAL-015",
+      "reference": "REF627561"
+    }
+  ],
+  "invoices": [
+    {
+      "invoice_number": "INV2024-001",
+      "date": "2025-06-10",
+      "client": "ABC Technologies Pvt Ltd",
+      "amount": 50000,
+      "description": "Software Development Services",
+      "status": "paid",
+      "due_date": "2025-07-10"
+    },
+    {
+      "invoice_number": "INV2024-002",
+      "date": "2025-05-26",
+      "client": "XYZ Office Supplies",
+      "amount": 12500,
+      "description": "Office Furniture Purchase",
+      "status": "paid",
+      "due_date": "2025-06-25"
+    },
+    {
+      "invoice_number": "INV2024-003",
+      "date": "2025-06-18",
+      "client": "Tech Solutions Inc",
+      "amount": 75000,
+      "description": "Consulting Services Q1",
+      "status": "paid",
+      "due_date": "2025-07-18"
+    },
+    {
+      "invoice_number": "INV2024-004",
+      "date": "2025-06-22",
+      "client": "Digital Marketing Co",
+      "amount": 35000,
+      "description": "Marketing Campaign Management",
+      "status": "paid",
+      "due_date": "2025-07-22"
+    },
+    {
+      "invoice_number": "INV2024-005",
+      "date": "2025-06-05",
+      "client": "Cloud Services Ltd",
+      "amount": 92000,
+      "description": "Enterprise Software License",
+      "status": "paid",
+      "due_date": "2025-07-05"
+    },
+    {
+      "invoice_number": "INV2024-006",
+      "date": "2025-06-30",
+      "client": "Professional Services",
+      "amount": 22000,
+      "description": "Business Process Optimization",
+      "status": "paid",
+      "due_date": "2025-07-30"
+    },
+    {
+      "invoice_number": "INV2024-007",
+      "date": "2025-06-02",
+      "client": "Training Institute",
+      "amount": 45000,
+      "description": "Employee Training Program",
+      "status": "paid",
+      "due_date": "2025-07-02"
+    },
+    {
+      "invoice_number": "INV2024-008",
+      "date": "2025-06-28",
+      "client": "Equipment Rental",
+      "amount": 18000,
+      "description": "Office Equipment Lease",
+      "status": "paid",
+      "due_date": "2025-07-28"
+    }
+  ],
+  "statistics": {
+    "total_transactions": 15,
+    "ai_matches": 8,
+    "manual_matches": 2,
+    "unmatched": 4,
+    "exceptions": 3,
+    "confidence_rate": 87,
+    "matched_amount": 389000,
+    "unmatched_amount": 61250,
+    "flagged_amount": 27250,
+    "processing_date": "2025-07-06 19:23:58"
+  },
+  "activity_log": [
+    {
+      "user": "Admin",
+      "action": "manually mapped transaction TXN0009",
+      "type": "manual",
+      "timestamp": "2024-01-15 14:30:00"
+    },
+    {
+      "user": "System",
+      "action": "AI auto-matched 8 transactions",
+      "type": "ai",
+      "timestamp": "2024-01-15 14:25:00"
+    },
+    {
+      "user": "Accountant",
+      "action": "reviewed exceptions for TXN0013",
+      "type": "manual",
+      "timestamp": "2024-01-15 14:20:00"
+    },
+    {
+      "user": "System",
+      "action": "batch reconciliation started",
+      "type": "system",
+      "timestamp": "2024-01-15 14:15:00"
+    },
+    {
+      "user": "Admin",
+      "action": "uploaded bank statement file",
+      "type": "system",
+      "timestamp": "2024-01-15 14:10:00"
+    },
+    {
+      "user": "System",
+      "action": "confidence threshold updated to 80%",
+      "type": "system",
+      "timestamp": "2024-01-15 14:05:00"
+    }
+  ],
+  "exceptions": [
+    {
+      "type": "duplicate",
+      "severity": "warning",
+      "description": "Duplicate Transaction: Amount \u20b950,000 appears twice on 2024-01-15",
+      "transaction_ids": [
+        "TXN0001",
+        "TXN0008"
+      ],
+      "recommended_action": "Review and merge duplicate entries"
+    },
+    {
+      "type": "currency_mismatch",
+      "severity": "info",
+      "description": "Currency Mismatch: USD transaction in INR bank account",
+      "transaction_ids": [
+        "TXN0012"
+      ],
+      "recommended_action": "Verify exchange rate and convert currency"
+    },
+    {
+      "type": "partial_match",
+      "severity": "secondary",
+      "description": "Partial Match: Invoice amount differs by \u20b9500",
+      "transaction_ids": [
+        "TXN0013"
+      ],
+      "recommended_action": "Check for additional charges or adjustments"
+    }
+  ]
+}

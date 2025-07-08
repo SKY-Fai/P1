@@ -1,0 +1,29 @@
+{
+  "name": "F-AI Accountant Enterprise",
+  "version": "2.0.0",
+  "build_date": "2025-07-07T21:32:54.113261",
+  "description": "Complete Enterprise Accounting SaaS Platform",
+  "components": [
+    "AI Accounting Module",
+    "Manual Journal Entry System",
+    "Bank Reconciliation Engine",
+    "Template Management System",
+    "Report Generation Engine",
+    "User Management & Permissions",
+    "Integration Architecture",
+    "Database Management",
+    "Docker Containerization",
+    "Complete Documentation"
+  ],
+  "requirements": {
+    "python": "3.8+",
+    "ram": "2GB minimum, 8GB recommended",
+    "storage": "10GB minimum, 50GB recommended",
+    "database": "SQLite (included) or PostgreSQL"
+  },
+  "deployment_options": [
+    "Local Development (SQLite)",
+    "Docker Container (PostgreSQL)",
+    "Cloud Deployment (Kubernetes)"
+  ]
+}

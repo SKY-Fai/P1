@@ -1,0 +1,542 @@
+{% extends "base.html" %}
+
+{% block title %}AI Insights Portal - AccuFin360{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-brain me-2"></i>AI Insights Portal
+            </h2>
+            <div>
+                <button class="btn btn-primary" id="refresh-insights">
+                    <i class="fas fa-sync-alt me-2"></i>Refresh Insights
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics Dashboard -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-gradient-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ insights.total_transactions }}</h4>
+                        <p class="mb-0">Total Transactions</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exchange-alt fa-2x opacity-75"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small><i class="fas fa-arrow-up me-1"></i>12% vs last month</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-gradient-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">${{ "%.2f"|format(insights.avg_transaction_value) }}</h4>
+                        <p class="mb-0">Avg Transaction Value</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-dollar-sign fa-2x opacity-75"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small><i class="fas fa-arrow-up me-1"></i>8% vs last month</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-gradient-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">94.5%</h4>
+                        <p class="mb-0">Accuracy Score</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-chart-line fa-2x opacity-75"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small><i class="fas fa-arrow-up me-1"></i>2% vs last month</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-gradient-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ insights.trend_analysis.split()[0] if insights.trend_analysis else 'Positive' }}</h4>
+                        <p class="mb-0">Trend Direction</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-trending-up fa-2x opacity-75"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small>{{ insights.trend_analysis or 'Growth trend detected' }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Insights Sections -->
+<div class="row">
+    <!-- Financial Pattern Analysis -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-search-dollar me-2"></i>Financial Pattern Analysis
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="insights-list">
+                    <div class="insight-item mb-3 p-3 border rounded">
+                        <div class="d-flex align-items-start">
+                            <div class="insight-icon me-3">
+                                <i class="fas fa-exclamation-triangle text-warning fa-2x"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-warning">Unusual Expense Pattern Detected</h6>
+                                <p class="mb-1">Office supplies expenses increased by 45% compared to the previous month. This deviation exceeds the normal variance threshold.</p>
+                                <small class="text-muted">Confidence: 89% | Impact: Medium</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="insight-item mb-3 p-3 border rounded">
+                        <div class="d-flex align-items-start">
+                            <div class="insight-icon me-3">
+                                <i class="fas fa-chart-line text-success fa-2x"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-success">Revenue Growth Opportunity</h6>
+                                <p class="mb-1">Client segment analysis shows 23% higher profitability in services category. Consider expanding service offerings.</p>
+                                <small class="text-muted">Confidence: 92% | Impact: High</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="insight-item mb-3 p-3 border rounded">
+                        <div class="d-flex align-items-start">
+                            <div class="insight-icon me-3">
+                                <i class="fas fa-clock text-info fa-2x"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-info">Seasonal Trend Identified</h6>
+                                <p class="mb-1">Revenue shows consistent 15% uptick during Q4. Historical data suggests preparing for increased demand.</p>
+                                <small class="text-muted">Confidence: 96% | Impact: Medium</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cash Flow Predictions -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-crystal-ball me-2"></i>Cash Flow Predictions
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="cashFlowPredictionChart" width="400" height="250"></canvas>
+                
+                <div class="mt-3">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="border rounded p-2">
+                                <h6 class="text-success">Next Month</h6>
+                                <p class="fw-bold mb-0">+$24,500</p>
+                                <small class="text-muted">Predicted inflow</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-2">
+                                <div class="border rounded p-2">
+                                <h6 class="text-warning">Quarter End</h6>
+                                <p class="fw-bold mb-0">+$67,200</p>
+                                <small class="text-muted">Projected balance</small>
+                            </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-2">
+                                <h6 class="text-info">Year End</h6>
+                                <p class="fw-bold mb-0">+$245,800</p>
+                                <small class="text-muted">Annual projection</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Anomaly Detection & Risk Assessment -->
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>Anomaly Detection & Risk Assessment
+                    </h5>
+                    <span class="badge bg-success">All Systems Normal</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Risk Factor</th>
+                                <th>Status</th>
+                                <th>Risk Level</th>
+                                <th>Last Checked</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-credit-card me-2 text-primary"></i>
+                                        Duplicate Transactions
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-success">Clear</span></td>
+                                <td>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-success" style="width: 15%"></div>
+                                    </div>
+                                    <small class="text-success">Low (15%)</small>
+                                </td>
+                                <td><small class="text-muted">2 min ago</small></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-balance-scale me-2 text-warning"></i>
+                                        Account Reconciliation
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-warning">Attention</span></td>
+                                <td>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" style="width: 65%"></div>
+                                    </div>
+                                    <small class="text-warning">Medium (65%)</small>
+                                </td>
+                                <td><small class="text-muted">5 min ago</small></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-warning">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-chart-line me-2 text-success"></i>
+                                        Expense Categorization
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-success">Optimal</span></td>
+                                <td>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-success" style="width: 25%"></div>
+                                    </div>
+                                    <small class="text-success">Low (25%)</small>
+                                </td>
+                                <td><small class="text-muted">1 min ago</small></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-users me-2 text-info"></i>
+                                        User Access Patterns
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-info">Monitoring</span></td>
+                                <td>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-info" style="width: 35%"></div>
+                                    </div>
+                                    <small class="text-info">Low (35%)</small>
+                                </td>
+                                <td><small class="text-muted">3 min ago</small></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-info-circle"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AI Recommendations -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>AI Recommendations
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="recommendation-item mb-3 p-3 bg-light rounded">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-robot text-primary me-2"></i>
+                        <strong class="text-primary">Process Optimization</strong>
+                    </div>
+                    <p class="mb-2 small">Automate monthly expense categorization to reduce processing time by 40%.</p>
+                    <button class="btn btn-sm btn-primary">Implement</button>
+                </div>
+                
+                <div class="recommendation-item mb-3 p-3 bg-light rounded">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-chart-line text-success me-2"></i>
+                        <strong class="text-success">Revenue Enhancement</strong>
+                    </div>
+                    <p class="mb-2 small">Focus on enterprise clients showing 18% higher margins than SMB segment.</p>
+                    <button class="btn btn-sm btn-success">Review</button>
+                </div>
+                
+                <div class="recommendation-item mb-3 p-3 bg-light rounded">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-shield-alt text-warning me-2"></i>
+                        <strong class="text-warning">Risk Mitigation</strong>
+                    </div>
+                    <p class="mb-2 small">Implement additional validation for transactions over $10,000.</p>
+                    <button class="btn btn-sm btn-warning">Configure</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Analytics -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-tachometer-alt me-2"></i>Performance Analytics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <canvas id="performanceChart" width="800" height="300"></canvas>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Key Performance Indicators</h6>
+                        <div class="kpi-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Processing Speed</span>
+                                <span class="fw-bold text-success">+23%</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 6px;">
+                                <div class="progress-bar bg-success" style="width: 78%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="kpi-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Data Accuracy</span>
+                                <span class="fw-bold text-success">96.8%</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 6px;">
+                                <div class="progress-bar bg-success" style="width: 97%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="kpi-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>User Satisfaction</span>
+                                <span class="fw-bold text-primary">4.7/5</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 6px;">
+                                <div class="progress-bar bg-primary" style="width: 94%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="kpi-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>System Uptime</span>
+                                <span class="fw-bold text-success">99.9%</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 6px;">
+                                <div class="progress-bar bg-success" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+$(document).ready(function() {
+    // Cash Flow Prediction Chart
+    const cashFlowCtx = document.getElementById('cashFlowPredictionChart').getContext('2d');
+    const cashFlowChart = new Chart(cashFlowCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+            datasets: [{
+                label: 'Actual Cash Flow',
+                data: [15000, 22000, 18000, 28000, 25000, 32000, null, null, null],
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4
+            }, {
+                label: 'Predicted Cash Flow',
+                data: [null, null, null, null, null, 32000, 35000, 38000, 42000],
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                borderDash: [5, 5],
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Performance Chart
+    const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+    const performanceChart = new Chart(performanceCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Processing Speed', 'Accuracy Rate', 'User Engagement', 'System Performance', 'Data Quality'],
+            datasets: [{
+                label: 'Current Month',
+                data: [85, 96, 78, 92, 88],
+                backgroundColor: 'rgba(0, 123, 255, 0.8)'
+            }, {
+                label: 'Previous Month',
+                data: [78, 94, 75, 89, 85],
+                backgroundColor: 'rgba(108, 117, 125, 0.6)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Refresh insights
+    $('#refresh-insights').click(function() {
+        const $btn = $(this);
+        $btn.prop('disabled', true)
+            .html('<i class="fas fa-spinner fa-spin me-2"></i>Refreshing...');
+        
+        // Simulate AI processing
+        setTimeout(() => {
+            $btn.prop('disabled', false)
+                .html('<i class="fas fa-sync-alt me-2"></i>Refresh Insights');
+            
+            // Show success message
+            $('<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+              '<i class="fas fa-check-circle me-2"></i>AI insights refreshed successfully!' +
+              '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+              '</div>').prependTo('.container-fluid').delay(3000).fadeOut();
+        }, 2000);
+    });
+    
+    // Auto-refresh insights every 5 minutes
+    setInterval(() => {
+        console.log('Auto-refreshing AI insights...');
+        // In a real application, this would fetch fresh insights from the server
+    }, 300000); // 5 minutes
+    
+    // Implement recommendation buttons
+    $('[data-recommendation]').click(function() {
+        const recommendation = $(this).data('recommendation');
+        alert(`Implementing recommendation: ${recommendation}`);
+    });
+    
+    // Risk assessment actions
+    $('.table .btn').click(function() {
+        const riskFactor = $(this).closest('tr').find('td:first').text().trim();
+        alert(`Investigating risk factor: ${riskFactor}`);
+    });
+});
+</script>
+{% endblock %}

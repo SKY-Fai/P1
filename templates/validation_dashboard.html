@@ -1,0 +1,1348 @@
+{% extends "base.html" %}
+
+{% block title %}Validation Dashboard - F-AI Accountant{% endblock %}
+
+{% block extra_head %}
+    
+    <style>
+        :root {
+            /* Black & White Theme with Lightest Blue Background */
+            --lightest-blue: #f0f8ff;
+            --pure-black: #000000;
+            --pure-white: #ffffff;
+            --light-gray: #f5f5f5;
+            --border-gray: #dddddd;
+            --dark-gray: #333333;
+            --text-black: #000000;
+            --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --radius: 8px;
+            --radius-lg: 12px;
+            --accent-blue: #007bff;
+            --accent-green: #28a745;
+            --accent-orange: #fd7e14;
+            --accent-red: #dc3545;
+        }
+
+        /* Page Layout */
+        body {
+            background: var(--lightest-blue) !important;
+        }
+
+        .dashboard-container {
+            background: var(--lightest-blue);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .dashboard-card {
+            background: var(--pure-white);
+            border: 1px solid var(--border-gray);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-subtle);
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .metric-card {
+            background: var(--pure-white);
+            border: 1px solid var(--border-gray);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-subtle);
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--pure-black);
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--dark-gray);
+            margin-top: 0.5rem;
+        }
+        
+        /* Card Headers */
+        .card-header {
+            background: var(--pure-black) !important;
+            border-bottom: 1px solid var(--border-gray);
+            color: var(--pure-white) !important;
+            font-weight: 700;
+            padding: 1.5rem;
+        }
+
+        .card-header h1, .card-header h2, .card-header h3, .card-header h4, .card-header h5, .card-header h6,
+        .card-header p, .card-header span, .card-header small {
+            color: var(--pure-white) !important;
+        }
+
+        .card-body {
+            background: var(--pure-white);
+            padding: 1.5rem;
+            color: var(--text-black);
+        }
+
+        /* Status Indicators */
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-healthy { background-color: var(--accent-green); }
+        .status-warning { background-color: var(--accent-orange); }
+        .status-error { background-color: var(--accent-red); }
+        
+        .module-health {
+            background: var(--pure-white);
+            border: 1px solid var(--border-gray);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-subtle);
+        }
+        
+        .file-browser {
+            background: var(--pure-white);
+            border: 1px solid var(--border-gray);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        /* Advanced Features */
+        .advanced-metrics {
+            background: linear-gradient(135deg, var(--pure-white) 0%, var(--light-gray) 100%);
+            border: 1px solid var(--border-gray);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .performance-chart {
+            background: var(--pure-white);
+            border: 1px solid var(--border-gray);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            height: 300px;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .alert-panel {
+            background: var(--pure-white);
+            border-left: 4px solid var(--accent-red);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .integration-status {
+            background: var(--pure-white);
+            border: 1px solid var(--border-gray);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-subtle);
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--bs-gray-700);
+        }
+        
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .audit-timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+        
+        .audit-item {
+            position: relative;
+            padding: 1rem 0;
+            border-left: 2px solid var(--bs-gray-600);
+            padding-left: 1.5rem;
+        }
+        
+        .audit-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 1.5rem;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--bs-info);
+        }
+        
+        .refresh-indicator {
+            display: none;
+            color: var(--bs-info);
+        }
+        
+        .tab-content {
+            background: var(--bs-dark);
+            border: 1px solid var(--bs-gray-600);
+            border-radius: 0 8px 8px 8px;
+            padding: 1.5rem;
+        }
+        
+        .nav-tabs .nav-link {
+            background: var(--bs-gray-800);
+            border: 1px solid var(--bs-gray-600);
+            color: var(--bs-gray-300);
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: var(--bs-dark);
+            border-bottom-color: var(--bs-dark);
+            color: var(--bs-white);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- Validation Dashboard Content -->
+    <div class="container-fluid py-4">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Validation Dashboard
+                        </h2>
+                        <p class="text-muted mb-0">Real-time system monitoring and audit trail</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-info btn-sm me-2" onclick="refreshDashboard()">
+                            <i class="fas fa-sync-alt me-1 refresh-indicator" id="refreshIcon"></i>
+                            Refresh
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" onclick="exportReport()">
+                            <i class="fas fa-download me-1"></i>
+                            Export Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- System Status Overview -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="dashboard-card">
+                    <h5 class="mb-3">
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        System Status Overview
+                        <span class="badge bg-success ms-2" id="systemStatus">All Systems Operational</span>
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-value" id="totalEvents">0</div>
+                                <div class="metric-label">Events (24h)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-value" id="errorRate">0%</div>
+                                <div class="metric-label">Error Rate</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-value" id="totalDownloads">0</div>
+                                <div class="metric-label">Downloads (7d)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-value" id="totalUploads">0</div>
+                                <div class="metric-label">Uploads (7d)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module Health Status -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="dashboard-card">
+                    <h5 class="mb-3">
+                        <i class="fas fa-heartbeat me-2"></i>
+                        Module Health Monitoring
+                    </h5>
+                    
+                    <div class="row" id="moduleHealthContainer">
+                        <!-- Module health cards will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Tabs -->
+        <div class="row">
+            <div class="col-12">
+                <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="downloads-tab" data-bs-toggle="tab" data-bs-target="#downloads" type="button" role="tab">
+                            <i class="fas fa-download me-1"></i>
+                            Downloads Management
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="templates-tab" data-bs-toggle="tab" data-bs-target="#templates" type="button" role="tab">
+                            <i class="fas fa-file-alt me-1"></i>
+                            Templates Library
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="uploads-tab" data-bs-toggle="tab" data-bs-target="#uploads" type="button" role="tab">
+                            <i class="fas fa-upload me-1"></i>
+                            Input Folder
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="audit-tab" data-bs-toggle="tab" data-bs-target="#audit" type="button" role="tab">
+                            <i class="fas fa-clipboard-list me-1"></i>
+                            Audit Trail
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="validation-tab" data-bs-toggle="tab" data-bs-target="#validation" type="button" role="tab">
+                            <i class="fas fa-check-circle me-1"></i>
+                            Validation Logs
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="advanced-tab" data-bs-toggle="tab" data-bs-target="#advanced" type="button" role="tab">
+                            <i class="fas fa-chart-bar me-1"></i>
+                            Advanced Analytics
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="integration-tab" data-bs-toggle="tab" data-bs-target="#integration" type="button" role="tab">
+                            <i class="fas fa-network-wired me-1"></i>
+                            Integration Health
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="dashboardTabContent">
+                    <!-- Downloads Management Tab -->
+                    <div class="tab-pane fade show active" id="downloads" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6>Downloads Management</h6>
+                            <div>
+                                <button class="btn btn-sm btn-outline-info me-2" onclick="refreshDownloads()">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                <select class="form-select form-select-sm d-inline-block w-auto" id="downloadCategoryFilter">
+                                    <option value="">All Categories</option>
+                                    <option value="financial_reports">Financial Reports</option>
+                                    <option value="reconciliation_reports">Reconciliation Reports</option>
+                                    <option value="validation_reports">Validation Reports</option>
+                                    <option value="audit_reports">Audit Reports</option>
+                                    <option value="compliance_reports">Compliance Reports</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-dark table-striped" id="downloadsTable">
+                                <thead>
+                                    <tr>
+                                        <th>File Name</th>
+                                        <th>Category</th>
+                                        <th>Type</th>
+                                        <th>Size</th>
+                                        <th>Generated</th>
+                                        <th>Downloads</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Downloads data will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Templates Library Tab -->
+                    <div class="tab-pane fade" id="templates" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6>Templates Library</h6>
+                            <div>
+                                <button class="btn btn-sm btn-outline-success me-2" onclick="uploadTemplate()">
+                                    <i class="fas fa-plus"></i> Add Template
+                                </button>
+                                <button class="btn btn-sm btn-outline-info" onclick="refreshTemplates()">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="row" id="templatesContainer">
+                            <!-- Template categories will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Input Folder Tab -->
+                    <div class="tab-pane fade" id="uploads" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6>Input Folder - Uploaded Files</h6>
+                            <div>
+                                <button class="btn btn-sm btn-outline-info me-2" onclick="refreshUploads()">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                <select class="form-select form-select-sm d-inline-block w-auto" id="uploadStatusFilter">
+                                    <option value="">All Status</option>
+                                    <option value="PENDING">Pending</option>
+                                    <option value="PROCESSING">Processing</option>
+                                    <option value="COMPLETED">Completed</option>
+                                    <option value="ERROR">Error</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-dark table-striped" id="uploadsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Upload ID</th>
+                                        <th>Original Name</th>
+                                        <th>Type</th>
+                                        <th>Size</th>
+                                        <th>Uploaded</th>
+                                        <th>User</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Uploads data will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Audit Trail Tab -->
+                    <div class="tab-pane fade" id="audit" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6>Audit Trail</h6>
+                            <div>
+                                <button class="btn btn-sm btn-outline-info me-2" onclick="refreshAuditTrail()">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-success" onclick="exportAuditTrail()">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Audit Filters -->
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="auditModuleFilter">
+                                    <option value="">All Modules</option>
+                                    <option value="ai_accounting">AI Accounting</option>
+                                    <option value="manual_journal">Manual Journal</option>
+                                    <option value="bank_reconciliation">Bank Reconciliation</option>
+                                    <option value="system">System</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="auditEventTypeFilter">
+                                    <option value="">All Event Types</option>
+                                    <option value="validation">Validation</option>
+                                    <option value="processing">Processing</option>
+                                    <option value="upload">Upload</option>
+                                    <option value="download">Download</option>
+                                    <option value="error">Error</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="date" class="form-control form-control-sm" id="auditStartDate">
+                            </div>
+                            <div class="col-md-3">
+                                <input type="date" class="form-control form-control-sm" id="auditEndDate">
+                            </div>
+                        </div>
+                        
+                        <div class="audit-timeline" id="auditTimeline">
+                            <!-- Audit events will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Validation Logs Tab -->
+                    <div class="tab-pane fade" id="validation" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6>Validation Logs & Performance Monitoring</h6>
+                            <button class="btn btn-sm btn-outline-info" onclick="refreshValidationLogs()">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Validation Metrics Charts -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="dashboard-card">
+                                    <h6>Module Performance (24h)</h6>
+                                    <canvas id="performanceChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="dashboard-card">
+                                    <h6>Error Distribution</h6>
+                                    <canvas id="errorChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Validation Issues -->
+                        <div class="dashboard-card">
+                            <h6>Recent Validation Issues</h6>
+                            <div id="validationIssues">
+                                <!-- Validation issues will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Analytics Tab -->
+                    <div class="tab-pane fade" id="advanced" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6>Advanced Performance Analytics</h6>
+                            <div>
+                                <button class="btn btn-sm btn-outline-info me-2" onclick="refreshAdvancedMetrics()">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-success" onclick="exportAdvancedReport()">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Metrics Cards -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="advanced-metrics">
+                                    <h6 class="mb-2">
+                                        <i class="fas fa-bolt text-warning me-2"></i>
+                                        Processing Speed
+                                    </h6>
+                                    <div class="metric-value text-warning" id="avgProcessingTime">0ms</div>
+                                    <div class="metric-label">Avg Response Time</div>
+                                    <small class="text-muted">↑ 12% from last week</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="advanced-metrics">
+                                    <h6 class="mb-2">
+                                        <i class="fas fa-chart-line text-success me-2"></i>
+                                        Throughput
+                                    </h6>
+                                    <div class="metric-value text-success" id="requestsPerMinute">0</div>
+                                    <div class="metric-label">Requests/Min</div>
+                                    <small class="text-muted">↑ 8% from yesterday</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="advanced-metrics">
+                                    <h6 class="mb-2">
+                                        <i class="fas fa-shield-alt text-info me-2"></i>
+                                        Reliability
+                                    </h6>
+                                    <div class="metric-value text-info" id="uptime">99.9%</div>
+                                    <div class="metric-label">System Uptime</div>
+                                    <small class="text-muted">30-day average</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="advanced-metrics">
+                                    <h6 class="mb-2">
+                                        <i class="fas fa-users text-primary me-2"></i>
+                                        Concurrency
+                                    </h6>
+                                    <div class="metric-value text-primary" id="activeUsers">0</div>
+                                    <div class="metric-label">Active Sessions</div>
+                                    <small class="text-muted">Real-time count</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Performance Charts -->
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <div class="performance-chart">
+                                    <h6 class="mb-3">System Performance Trends (7 Days)</h6>
+                                    <canvas id="advancedPerformanceChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="performance-chart">
+                                    <h6 class="mb-3">Resource Utilization</h6>
+                                    <canvas id="resourceChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Alerts Panel -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="alert-panel">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                        System Alerts
+                                    </h6>
+                                    <div id="systemAlerts">
+                                        <div class="alert alert-warning d-flex align-items-center mb-2">
+                                            <i class="fas fa-clock me-2"></i>
+                                            <small>High response time detected in Bank Reconciliation module (avg: 2.3s)</small>
+                                        </div>
+                                        <div class="alert alert-info d-flex align-items-center mb-2">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <small>Scheduled maintenance window: Sunday 2:00 AM - 4:00 AM UTC</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="alert-panel">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-cogs text-primary me-2"></i>
+                                        Optimization Recommendations
+                                    </h6>
+                                    <div id="recommendations">
+                                        <div class="alert alert-success d-flex align-items-center mb-2">
+                                            <i class="fas fa-lightbulb me-2"></i>
+                                            <small>Consider enabling database query caching to improve response times</small>
+                                        </div>
+                                        <div class="alert alert-info d-flex align-items-center mb-2">
+                                            <i class="fas fa-chart-bar me-2"></i>
+                                            <small>Template download patterns suggest pre-loading popular templates</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Integration Health Tab -->
+                    <div class="tab-pane fade" id="integration" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6>Module Integration Health Monitor</h6>
+                            <button class="btn btn-sm btn-outline-info" onclick="refreshIntegrationStatus()">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+
+                        <!-- Integration Status Overview -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="integration-status">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="status-indicator status-healthy"></div>
+                                        <h6 class="mb-0">AI Accounting ↔ Manual Journal</h6>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <small class="text-muted">Data Flow:</small>
+                                            <div class="fw-bold text-success">Active</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Last Sync:</small>
+                                            <div class="fw-bold">2 min ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">Transactions processed: 1,247 today</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="integration-status">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="status-indicator status-healthy"></div>
+                                        <h6 class="mb-0">AI Accounting ↔ Bank Reconciliation</h6>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <small class="text-muted">Matching Rate:</small>
+                                            <div class="fw-bold text-success">94.2%</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Last Update:</small>
+                                            <div class="fw-bold">5 min ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">Bank statements processed: 23 today</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="integration-status">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="status-indicator status-warning"></div>
+                                        <h6 class="mb-0">Manual Journal ↔ Bank Reconciliation</h6>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <small class="text-muted">Sync Status:</small>
+                                            <div class="fw-bold text-warning">Delayed</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Last Sync:</small>
+                                            <div class="fw-bold">15 min ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">Manual entries pending: 3</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Integration Flow Diagram -->
+                        <div class="dashboard-card mb-4">
+                            <h6 class="mb-3">System Integration Architecture</h6>
+                            <div class="text-center">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <div class="integration-module">
+                                            <i class="fas fa-robot fa-2x text-primary mb-2"></i>
+                                            <h6>AI Accounting</h6>
+                                            <small class="text-muted">Automated Processing</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <i class="fas fa-arrows-alt-h fa-lg text-success"></i>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="integration-module">
+                                            <i class="fas fa-edit fa-2x text-warning mb-2"></i>
+                                            <h6>Manual Journal</h6>
+                                            <small class="text-muted">User Entries</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <i class="fas fa-arrows-alt-h fa-lg text-success"></i>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="integration-module">
+                                            <i class="fas fa-university fa-2x text-info mb-2"></i>
+                                            <h6>Bank Reconciliation</h6>
+                                            <small class="text-muted">Statement Matching</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- API Health Monitoring -->
+                        <div class="dashboard-card">
+                            <h6 class="mb-3">API Endpoint Health Status</h6>
+                            <div class="table-responsive">
+                                <table class="table table-borderless">
+                                    <thead>
+                                        <tr>
+                                            <th>Endpoint</th>
+                                            <th>Status</th>
+                                            <th>Response Time</th>
+                                            <th>Last Check</th>
+                                            <th>Success Rate (24h)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>/api/automated-accounting/process</td>
+                                            <td><span class="badge bg-success">Healthy</span></td>
+                                            <td>320ms</td>
+                                            <td>30s ago</td>
+                                            <td>99.8%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>/api/manual-journal/create</td>
+                                            <td><span class="badge bg-success">Healthy</span></td>
+                                            <td>180ms</td>
+                                            <td>45s ago</td>
+                                            <td>99.9%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>/api/bank-reconciliation/process</td>
+                                            <td><span class="badge bg-warning">Slow</span></td>
+                                            <td>2,340ms</td>
+                                            <td>1m ago</td>
+                                            <td>97.2%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>/api/validation-dashboard/metrics</td>
+                                            <td><span class="badge bg-success">Healthy</span></td>
+                                            <td>95ms</td>
+                                            <td>10s ago</td>
+                                            <td>99.9%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        // Global variables
+        let dashboardData = {};
+        let performanceChart = null;
+        let errorChart = null;
+
+        // Initialize dashboard
+        $(document).ready(function() {
+            initializeDashboard();
+            loadDashboardData();
+            
+            // Set up auto-refresh every 30 seconds
+            setInterval(refreshDashboard, 30000);
+        });
+
+        function initializeDashboard() {
+            // Initialize DataTables
+            $('#downloadsTable').DataTable({
+                pageLength: 25,
+                order: [[4, 'desc']], // Sort by generated date
+                columnDefs: [
+                    { targets: [3], type: 'file-size' },
+                    { targets: [4], type: 'date' }
+                ]
+            });
+
+            $('#uploadsTable').DataTable({
+                pageLength: 25,
+                order: [[4, 'desc']], // Sort by upload date
+                columnDefs: [
+                    { targets: [3], type: 'file-size' },
+                    { targets: [4], type: 'date' }
+                ]
+            });
+
+            // Set up event listeners
+            $('#downloadCategoryFilter').on('change', filterDownloads);
+            $('#uploadStatusFilter').on('change', filterUploads);
+            $('#auditModuleFilter, #auditEventTypeFilter, #auditStartDate, #auditEndDate').on('change', filterAuditTrail);
+        }
+
+        function loadDashboardData() {
+            fetch('/api/validation-dashboard/metrics')
+                .then(response => response.json())
+                .then(data => {
+                    dashboardData = data;
+                    updateDashboardMetrics(data);
+                    updateModuleHealth(data.module_health);
+                    loadDownloads();
+                    loadTemplates();
+                    loadUploads();
+                    loadAuditTrail();
+                    updateValidationCharts();
+                })
+                .catch(error => {
+                    console.error('Error loading dashboard data:', error);
+                    showAlert('error', 'Failed to load dashboard data');
+                });
+        }
+
+        function updateDashboardMetrics(data) {
+            const metrics = data.recent_validation_events;
+            const downloads = data.download_statistics;
+            const uploads = data.upload_statistics;
+
+            document.getElementById('totalEvents').textContent = metrics.summary.total;
+            document.getElementById('errorRate').textContent = 
+                metrics.summary.total > 0 ? 
+                ((metrics.summary.errors / metrics.summary.total) * 100).toFixed(1) + '%' : '0%';
+            document.getElementById('totalDownloads').textContent = downloads.total_downloads;
+            document.getElementById('totalUploads').textContent = uploads.total_uploads;
+
+            // Update system status
+            const statusElement = document.getElementById('systemStatus');
+            const systemStatus = data.system_status;
+            
+            statusElement.className = 'badge ms-2 ' + 
+                (systemStatus === 'ALL_SYSTEMS_OPERATIONAL' ? 'bg-success' :
+                 systemStatus === 'WARNINGS_DETECTED' ? 'bg-warning' : 'bg-danger');
+            statusElement.textContent = systemStatus.replace(/_/g, ' ').toLowerCase()
+                .replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function updateModuleHealth(moduleHealth) {
+            const container = document.getElementById('moduleHealthContainer');
+            container.innerHTML = '';
+
+            Object.entries(moduleHealth).forEach(([module, health]) => {
+                const statusClass = health.status === 'HEALTHY' ? 'status-healthy' : 
+                                  health.status === 'WARNING' ? 'status-warning' : 'status-error';
+                
+                const card = `
+                    <div class="col-md-4">
+                        <div class="module-health">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">
+                                    <span class="status-indicator ${statusClass}"></span>
+                                    ${module.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                </h6>
+                                <span class="badge ${health.status === 'HEALTHY' ? 'bg-success' : 
+                                                  health.status === 'WARNING' ? 'bg-warning' : 'bg-danger'}">
+                                    ${health.status}
+                                </span>
+                            </div>
+                            <div class="small text-muted">
+                                <div>Error Rate: ${(health.error_rate * 100).toFixed(2)}%</div>
+                                <div>Events: ${health.total_events}</div>
+                                <div>Last Check: ${new Date(health.last_check).toLocaleTimeString()}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        }
+
+        function loadDownloads() {
+            fetch('/api/validation-dashboard/downloads')
+                .then(response => response.json())
+                .then(data => {
+                    updateDownloadsTable(data);
+                })
+                .catch(error => {
+                    console.error('Error loading downloads:', error);
+                });
+        }
+
+        function updateDownloadsTable(downloads) {
+            const table = $('#downloadsTable').DataTable();
+            table.clear();
+
+            downloads.forEach(download => {
+                table.row.add([
+                    download.name,
+                    download.category,
+                    download.type.toUpperCase(),
+                    formatFileSize(download.size),
+                    formatDateTime(download.generated),
+                    download.download_count || 0,
+                    `<button class="btn btn-sm btn-outline-info" onclick="downloadFile('${download.path}', '${download.name}')">
+                        <i class="fas fa-download"></i>
+                    </button>`
+                ]);
+            });
+
+            table.draw();
+        }
+
+        function loadTemplates() {
+            fetch('/api/validation-dashboard/templates')
+                .then(response => response.json())
+                .then(data => {
+                    updateTemplatesView(data);
+                })
+                .catch(error => {
+                    console.error('Error loading templates:', error);
+                });
+        }
+
+        function updateTemplatesView(templates) {
+            const container = document.getElementById('templatesContainer');
+            container.innerHTML = '';
+
+            Object.entries(templates).forEach(([category, files]) => {
+                const categoryCard = `
+                    <div class="col-md-6 mb-3">
+                        <div class="dashboard-card">
+                            <h6>${category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h6>
+                            <div class="file-browser">
+                                ${files.map(file => `
+                                    <div class="file-item">
+                                        <div>
+                                            <i class="fas fa-file-${getFileIcon(file.type)} me-2"></i>
+                                            <span>${file.name}</span>
+                                            <small class="text-muted ms-2">(${formatFileSize(file.size)})</small>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-sm btn-outline-info" onclick="downloadTemplate('${file.path}', '${file.name}')">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += categoryCard;
+            });
+        }
+
+        function loadUploads() {
+            fetch('/api/validation-dashboard/uploads')
+                .then(response => response.json())
+                .then(data => {
+                    updateUploadsTable(data);
+                })
+                .catch(error => {
+                    console.error('Error loading uploads:', error);
+                });
+        }
+
+        function updateUploadsTable(uploads) {
+            const table = $('#uploadsTable').DataTable();
+            table.clear();
+
+            uploads.forEach(upload => {
+                const statusBadge = getStatusBadge(upload.processing_status);
+                table.row.add([
+                    upload.upload_id,
+                    upload.original_name,
+                    upload.file_type.toUpperCase(),
+                    formatFileSize(upload.file_size),
+                    formatDateTime(upload.timestamp),
+                    upload.user_id,
+                    statusBadge,
+                    `<button class="btn btn-sm btn-outline-info" onclick="viewUploadDetails('${upload.upload_id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>`
+                ]);
+            });
+
+            table.draw();
+        }
+
+        function loadAuditTrail() {
+            const filters = {
+                module: document.getElementById('auditModuleFilter').value,
+                event_type: document.getElementById('auditEventTypeFilter').value,
+                start_date: document.getElementById('auditStartDate').value,
+                end_date: document.getElementById('auditEndDate').value
+            };
+
+            const queryParams = new URLSearchParams();
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value) queryParams.append(key, value);
+            });
+
+            fetch(`/api/validation-dashboard/audit-trail?${queryParams}`)
+                .then(response => response.json())
+                .then(data => {
+                    updateAuditTimeline(data);
+                })
+                .catch(error => {
+                    console.error('Error loading audit trail:', error);
+                });
+        }
+
+        function updateAuditTimeline(auditEvents) {
+            const timeline = document.getElementById('auditTimeline');
+            timeline.innerHTML = '';
+
+            auditEvents.forEach(event => {
+                const eventItem = `
+                    <div class="audit-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">${event.description}</h6>
+                                <small class="text-muted">
+                                    ${event.module} • ${event.event_type} • ${event.user_id}
+                                    ${event.duration_ms ? ` • ${event.duration_ms.toFixed(0)}ms` : ''}
+                                </small>
+                                ${event.error_message ? `<div class="text-danger small mt-1">${event.error_message}</div>` : ''}
+                            </div>
+                            <div class="text-end">
+                                <span class="badge ${event.status === 'SUCCESS' ? 'bg-success' : 'bg-danger'}">${event.status}</span>
+                                <div class="small text-muted mt-1">${formatDateTime(event.timestamp)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                timeline.innerHTML += eventItem;
+            });
+        }
+
+        function updateValidationCharts() {
+            // Performance Chart
+            const ctx1 = document.getElementById('performanceChart').getContext('2d');
+            if (performanceChart) performanceChart.destroy();
+            
+            performanceChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['6h ago', '5h ago', '4h ago', '3h ago', '2h ago', '1h ago', 'Now'],
+                    datasets: [{
+                        label: 'AI Accounting',
+                        data: [95, 97, 94, 96, 98, 95, 97],
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)'
+                    }, {
+                        label: 'Manual Journal',
+                        data: [98, 99, 97, 98, 99, 98, 99],
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)'
+                    }, {
+                        label: 'Bank Reconciliation',
+                        data: [92, 94, 91, 93, 95, 93, 94],
+                        borderColor: '#ffc107',
+                        backgroundColor: 'rgba(255, 193, 7, 0.1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { color: '#fff' },
+                            grid: { color: '#444' }
+                        },
+                        x: {
+                            ticks: { color: '#fff' },
+                            grid: { color: '#444' }
+                        }
+                    }
+                }
+            });
+
+            // Error Chart
+            const ctx2 = document.getElementById('errorChart').getContext('2d');
+            if (errorChart) errorChart.destroy();
+            
+            errorChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['AI Accounting', 'Manual Journal', 'Bank Reconciliation'],
+                    datasets: [{
+                        data: [2, 1, 5],
+                        backgroundColor: ['#007bff', '#28a745', '#ffc107']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Utility functions
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatDateTime(dateString) {
+            return new Date(dateString).toLocaleString();
+        }
+
+        function getFileIcon(extension) {
+            const iconMap = {
+                '.xlsx': 'excel',
+                '.xls': 'excel',
+                '.pdf': 'pdf',
+                '.csv': 'csv',
+                '.docx': 'word',
+                '.doc': 'word'
+            };
+            return iconMap[extension] || 'alt';
+        }
+
+        function getStatusBadge(status) {
+            const badgeMap = {
+                'PENDING': 'bg-warning',
+                'PROCESSING': 'bg-info',
+                'COMPLETED': 'bg-success',
+                'ERROR': 'bg-danger'
+            };
+            return `<span class="badge ${badgeMap[status] || 'bg-secondary'}">${status}</span>`;
+        }
+
+        // Action functions
+        function refreshDashboard() {
+            const icon = document.getElementById('refreshIcon');
+            icon.style.display = 'inline';
+            icon.classList.add('fa-spin');
+            
+            loadDashboardData();
+            
+            setTimeout(() => {
+                icon.classList.remove('fa-spin');
+                icon.style.display = 'none';
+            }, 1000);
+        }
+
+        function refreshDownloads() { loadDownloads(); }
+        function refreshTemplates() { loadTemplates(); }
+        function refreshUploads() { loadUploads(); }
+        function refreshAuditTrail() { loadAuditTrail(); }
+        function refreshValidationLogs() { updateValidationCharts(); }
+
+        function filterDownloads() {
+            const table = $('#downloadsTable').DataTable();
+            const category = document.getElementById('downloadCategoryFilter').value;
+            table.column(1).search(category).draw();
+        }
+
+        function filterUploads() {
+            const table = $('#uploadsTable').DataTable();
+            const status = document.getElementById('uploadStatusFilter').value;
+            table.column(6).search(status).draw();
+        }
+
+        function filterAuditTrail() {
+            loadAuditTrail();
+        }
+
+        function downloadFile(path, filename) {
+            // Log download event
+            fetch('/api/validation-dashboard/log-download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    file_path: path, 
+                    file_name: filename,
+                    file_category: 'report'
+                })
+            });
+
+            // Trigger download
+            const link = document.createElement('a');
+            link.href = `/api/download-file?path=${encodeURIComponent(path)}`;
+            link.download = filename;
+            link.click();
+        }
+
+        function downloadTemplate(path, filename) {
+            downloadFile(path, filename);
+        }
+
+        function viewUploadDetails(uploadId) {
+            // Open modal with upload details
+            alert(`View details for upload: ${uploadId}`);
+        }
+
+        function exportReport() {
+            window.open('/api/validation-dashboard/export-report', '_blank');
+        }
+
+        function exportAuditTrail() {
+            const filters = {
+                module: document.getElementById('auditModuleFilter').value,
+                event_type: document.getElementById('auditEventTypeFilter').value,
+                start_date: document.getElementById('auditStartDate').value,
+                end_date: document.getElementById('auditEndDate').value
+            };
+
+            const queryParams = new URLSearchParams();
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value) queryParams.append(key, value);
+            });
+
+            window.open(`/api/validation-dashboard/export-audit?${queryParams}`, '_blank');
+        }
+
+        function uploadTemplate() {
+            // Open file upload dialog
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xlsx,.xls,.csv';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const formData = new FormData();
+                    formData.append('template', file);
+                    
+                    fetch('/api/validation-dashboard/upload-template', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showAlert('success', 'Template uploaded successfully');
+                            refreshTemplates();
+                        } else {
+                            showAlert('error', 'Failed to upload template');
+                        }
+                    })
+                    .catch(error => {
+                        showAlert('error', 'Error uploading template');
+                    });
+                }
+            };
+            input.click();
+        }
+
+        function showAlert(type, message) {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const alert = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            const container = document.querySelector('.container-fluid');
+            container.insertAdjacentHTML('afterbegin', alert);
+            
+            setTimeout(() => {
+                const alertElement = container.querySelector('.alert');
+                if (alertElement) alertElement.remove();
+            }, 5000);
+        }
+    </script>
+{% endblock %}
