@@ -31,3 +31,15 @@ DATABASE_URL = "sqlite:///database/fai_accountant.db"
 AUDIT_LOGGING_ENABLED = "true"
 RETENTION_DAYS = "2555"
 ENCRYPTION_ENABLED = "true"
+
+[workflows]
+runButton = "F-AI Accountant Server"
+
+[[workflows.workflow]]
+name = "F-AI Accountant Server"
+author = 44663263
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"

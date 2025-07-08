@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """
 Production Database Setup for F-AI Accountant
@@ -8,9 +7,11 @@ Supports both PostgreSQL (production) and SQLite (development)
 import os
 import sys
 import logging
+import time
 import psycopg2
-import sqlite3
 from pathlib import Path
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import OperationalError
 from datetime import datetime
 import json
 
@@ -21,28 +22,42 @@ from config import config
 
 class ProductionDatabaseSetup:
     """Production-ready database setup and management"""
-    
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.config_name = os.environ.get('FLASK_ENV', 'production')
         self.config = config.get(self.config_name, config['production'])
-        
+
     def setup_postgresql_production(self):
         """Setup PostgreSQL for production deployment"""
         self.logger.info("Setting up PostgreSQL for production...")
-        
+
         try:
             # Parse database URL
             db_url = self.config.SQLALCHEMY_DATABASE_URI
             if not db_url.startswith('postgresql://'):
                 self.logger.error("PostgreSQL URL required for production")
                 return False
-            
-            # Connect to PostgreSQL
-            conn = psycopg2.connect(db_url)
-            conn.autocommit = True
-            cursor = conn.cursor()
-            
+
+            # Retry connection with exponential backoff
+            max_retries = 5
+            base_delay = 2  # seconds
+            for attempt in range(max_retries):
+                try:
+                    # Connect to PostgreSQL
+                    conn = psycopg2.connect(db_url)
+                    conn.autocommit = True
+                    cursor = conn.cursor()
+                    break  # Connection successful, exit retry loop
+                except psycopg2.OperationalError as e:
+                    self.logger.warning(f"Attempt {attempt + 1} failed: {e}")
+                    if attempt == max_retries - 1:
+                        self.logger.error("Max retries reached. PostgreSQL setup failed.")
+                        return False
+                    delay = base_delay * (2 ** attempt)  # Exponential backoff
+                    self.logger.info(f"Retrying in {delay} seconds...")
+                    time.sleep(delay)
+
             # Execute production schema
             schema_file = Path(__file__).parent / 'production_schema.sql'
             if schema_file.exists():
@@ -51,252 +66,303 @@ class ProductionDatabaseSetup:
             else:
                 # Create basic schema if file doesn't exist
                 self._create_production_schema(cursor)
-            
+
             # Insert production data
             self._insert_production_data(cursor)
-            
+
             cursor.close()
             conn.close()
-            
+
             self.logger.info("✅ PostgreSQL production setup completed")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"❌ PostgreSQL setup failed: {e}")
             return False
-    
+
     def setup_sqlite_development(self):
         """Setup SQLite for development"""
         self.logger.info("Setting up SQLite for development...")
-        
+
         try:
             db_path = "database/fai_accountant_dev.db"
             os.makedirs(os.path.dirname(db_path), exist_ok=True)
-            
+
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
-            
+
             # Create development schema
             self._create_development_schema(cursor)
-            
+
             # Insert development data
             self._insert_development_data(cursor)
-            
+
             conn.commit()
             cursor.close()
             conn.close()
-            
+
             self.logger.info("✅ SQLite development setup completed")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"❌ SQLite setup failed: {e}")
             return False
-    
+
     def _create_production_schema(self, cursor):
         """Create production database schema"""
-        
+
         # Enhanced users table for production
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                id SERIAL PRIMARY KEY,
-                username VARCHAR(80) UNIQUE NOT NULL,
-                email VARCHAR(120) UNIQUE NOT NULL,
-                password_hash VARCHAR(256) NOT NULL,
-                first_name VARCHAR(50) NOT NULL,
-                last_name VARCHAR(50) NOT NULL,
-                category VARCHAR(20) DEFAULT 'individual',
-                user_code VARCHAR(20) UNIQUE,
-                access_code VARCHAR(10),
-                parent_user_id INTEGER REFERENCES users(id),
-                is_active BOOLEAN DEFAULT TRUE,
-                is_verified BOOLEAN DEFAULT FALSE,
-                role VARCHAR(20) DEFAULT 'viewer',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_login TIMESTAMP
-            )
-        ''')
-        
+        try:
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS users (
+                    id SERIAL PRIMARY KEY,
+                    username VARCHAR(80) UNIQUE NOT NULL,
+                    email VARCHAR(120) UNIQUE NOT NULL,
+                    password_hash VARCHAR(256) NOT NULL,
+                    first_name VARCHAR(50) NOT NULL,
+                    last_name VARCHAR(50) NOT NULL,
+                    category VARCHAR(20) DEFAULT 'individual',
+                    user_code VARCHAR(20) UNIQUE,
+                    access_code VARCHAR(10),
+                    parent_user_id INTEGER REFERENCES users(id),
+                    is_active BOOLEAN DEFAULT TRUE,
+                    is_verified BOOLEAN DEFAULT FALSE,
+                    role VARCHAR(20) DEFAULT 'viewer',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_login TIMESTAMP
+                )
+            ''')
+        except Exception as e:
+            self.logger.error(f"Error creating users table: {e}")
+            raise
+
         # Companies table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS companies (
-                id SERIAL PRIMARY KEY,
-                name VARCHAR(200) NOT NULL,
-                registration_number VARCHAR(100) UNIQUE,
-                tax_id VARCHAR(100) UNIQUE,
-                address TEXT,
-                phone VARCHAR(20),
-                email VARCHAR(120),
-                owner_user_id INTEGER NOT NULL REFERENCES users(id),
-                is_active BOOLEAN DEFAULT TRUE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
+        try:
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS companies (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR(200) NOT NULL,
+                    registration_number VARCHAR(100) UNIQUE,
+                    tax_id VARCHAR(100) UNIQUE,
+                    address TEXT,
+                    phone VARCHAR(20),
+                    email VARCHAR(120),
+                    owner_user_id INTEGER NOT NULL REFERENCES users(id),
+                    is_active BOOLEAN DEFAULT TRUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+        except Exception as e:
+            self.logger.error(f"Error creating companies table: {e}")
+            raise
+
         # File storage metadata (GCP integration)
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS file_storage_metadata (
-                id SERIAL PRIMARY KEY,
-                file_path VARCHAR(1000) NOT NULL UNIQUE,
-                original_filename VARCHAR(500) NOT NULL,
-                secure_filename VARCHAR(500) NOT NULL,
-                file_hash VARCHAR(64) NOT NULL,
-                file_size BIGINT NOT NULL,
-                mime_type VARCHAR(200),
-                content_type VARCHAR(200),
-                user_id INTEGER NOT NULL REFERENCES users(id),
-                organization_id INTEGER REFERENCES companies(id),
-                file_category VARCHAR(50) DEFAULT 'other',
-                storage_bucket VARCHAR(200) DEFAULT 'fai-accountant-storage',
-                upload_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                is_encrypted BOOLEAN DEFAULT TRUE,
-                is_deleted BOOLEAN DEFAULT FALSE,
-                processing_status VARCHAR(50) DEFAULT 'uploaded'
-            )
-        ''')
-        
+        try:
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS file_storage_metadata (
+                    id SERIAL PRIMARY KEY,
+                    file_path VARCHAR(1000) NOT NULL UNIQUE,
+                    original_filename VARCHAR(500) NOT NULL,
+                    secure_filename VARCHAR(500) NOT NULL,
+                    file_hash VARCHAR(64) NOT NULL,
+                    file_size BIGINT NOT NULL,
+                    mime_type VARCHAR(200),
+                    content_type VARCHAR(200),
+                    user_id INTEGER NOT NULL REFERENCES users(id),
+                    organization_id INTEGER REFERENCES companies(id),
+                    file_category VARCHAR(50) DEFAULT 'other',
+                    storage_bucket VARCHAR(200) DEFAULT 'fai-accountant-storage',
+                    upload_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    is_encrypted BOOLEAN DEFAULT TRUE,
+                    is_deleted BOOLEAN DEFAULT FALSE,
+                    processing_status VARCHAR(50) DEFAULT 'uploaded'
+                )
+            ''')
+        except Exception as e:
+            self.logger.error(f"Error creating file_storage_metadata table: {e}")
+            raise
+
         # Chart of accounts
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS chart_of_accounts (
-                id SERIAL PRIMARY KEY,
-                company_id INTEGER REFERENCES companies(id),
-                account_code VARCHAR(20) NOT NULL,
-                account_name VARCHAR(200) NOT NULL,
-                account_type VARCHAR(50) NOT NULL,
-                parent_account_id INTEGER REFERENCES chart_of_accounts(id),
-                is_active BOOLEAN DEFAULT TRUE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
+        try:
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS chart_of_accounts (
+                    id SERIAL PRIMARY KEY,
+                    company_id INTEGER REFERENCES companies(id),
+                    account_code VARCHAR(20) NOT NULL,
+                    account_name VARCHAR(200) NOT NULL,
+                    account_type VARCHAR(50) NOT NULL,
+                    parent_account_id INTEGER REFERENCES chart_of_accounts(id),
+                    is_active BOOLEAN DEFAULT TRUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+        except Exception as e:
+            self.logger.error(f"Error creating chart_of_accounts table: {e}")
+            raise
+
         # Journal entries with enhanced workflow
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS journal_entries (
-                id SERIAL PRIMARY KEY,
-                company_id INTEGER REFERENCES companies(id),
-                account_id INTEGER REFERENCES chart_of_accounts(id),
-                created_by INTEGER REFERENCES users(id),
-                entry_date TIMESTAMP NOT NULL,
-                description TEXT NOT NULL,
-                reference_number VARCHAR(100),
-                debit_amount DECIMAL(15,2) DEFAULT 0.00,
-                credit_amount DECIMAL(15,2) DEFAULT 0.00,
-                status VARCHAR(20) DEFAULT 'draft',
-                is_posted BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
+        try:
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS journal_entries (
+                    id SERIAL PRIMARY KEY,
+                    company_id INTEGER REFERENCES companies(id),
+                    account_id INTEGER REFERENCES chart_of_accounts(id),
+                    created_by INTEGER REFERENCES users(id),
+                    entry_date TIMESTAMP NOT NULL,
+                    description TEXT NOT NULL,
+                    reference_number VARCHAR(100),
+                    debit_amount DECIMAL(15,2) DEFAULT 0.00,
+                    credit_amount DECIMAL(15,2) DEFAULT 0.00,
+                    status VARCHAR(20) DEFAULT 'draft',
+                    is_posted BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+        except Exception as e:
+            self.logger.error(f"Error creating journal_entries table: {e}")
+            raise
+
         # Audit log for compliance
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS audit_logs (
-                id SERIAL PRIMARY KEY,
-                user_id INTEGER REFERENCES users(id),
-                action VARCHAR(100) NOT NULL,
-                table_name VARCHAR(100),
-                record_id INTEGER,
-                old_values JSONB,
-                new_values JSONB,
-                ip_address INET,
-                user_agent TEXT,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
+        try:
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS audit_logs (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER REFERENCES users(id),
+                    action VARCHAR(100) NOT NULL,
+                    table_name VARCHAR(100),
+                    record_id INTEGER,
+                    old_values JSONB,
+                    new_values JSONB,
+                    ip_address INET,
+                    user_agent TEXT,
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+        except Exception as e:
+            self.logger.error(f"Error creating audit_logs table: {e}")
+            raise
+
         # Create indexes for performance
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_file_storage_user ON file_storage_metadata(user_id)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_journal_entries_date ON journal_entries(entry_date)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp)')
-        
+        try:
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_file_storage_user ON file_storage_metadata(user_id)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_journal_entries_date ON journal_entries(entry_date)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp)')
+        except Exception as e:
+            self.logger.error(f"Error creating indexes: {e}")
+            raise
+
+
         self.logger.info("✅ Production schema created")
-    
+
     def _create_development_schema(self, cursor):
         """Create development database schema (SQLite)"""
-        
+
         # Users table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                email TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                first_name TEXT NOT NULL,
-                last_name TEXT NOT NULL,
-                category TEXT DEFAULT 'individual',
-                user_code TEXT UNIQUE,
-                access_code TEXT,
-                parent_user_id INTEGER,
-                is_active BOOLEAN DEFAULT TRUE,
-                role TEXT DEFAULT 'viewer',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (parent_user_id) REFERENCES users(id)
-            )
-        ''')
-        
+        try:
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL,
+                    email TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    first_name TEXT NOT NULL,
+                    last_name TEXT NOT NULL,
+                    category TEXT DEFAULT 'individual',
+                    user_code TEXT UNIQUE,
+                    access_code TEXT,
+                    parent_user_id INTEGER,
+                    is_active BOOLEAN DEFAULT TRUE,
+                    role TEXT DEFAULT 'viewer',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (parent_user_id) REFERENCES users(id)
+                )
+            ''')
+        except Exception as e:
+            self.logger.error(f"Error creating users table: {e}")
+            raise
+
+
         # Companies table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS companies (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                registration_number TEXT UNIQUE,
-                address TEXT,
-                phone TEXT,
-                email TEXT,
-                owner_user_id INTEGER NOT NULL,
-                is_active BOOLEAN DEFAULT TRUE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (owner_user_id) REFERENCES users(id)
-            )
-        ''')
-        
+        try:
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS companies (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    registration_number TEXT UNIQUE,
+                    address TEXT,
+                    phone TEXT,
+                    email TEXT,
+                    owner_user_id INTEGER NOT NULL,
+                    is_active BOOLEAN DEFAULT TRUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (owner_user_id) REFERENCES users(id)
+                )
+            ''')
+        except Exception as e:
+            self.logger.error(f"Error creating companies table: {e}")
+            raise
+
         # Chart of accounts
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS chart_of_accounts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                account_code TEXT UNIQUE NOT NULL,
-                account_name TEXT NOT NULL,
-                account_type TEXT NOT NULL,
-                parent_account_id INTEGER,
-                is_active BOOLEAN DEFAULT TRUE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (parent_account_id) REFERENCES chart_of_accounts(id)
-            )
-        ''')
-        
+        try:
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS chart_of_accounts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    account_code TEXT UNIQUE NOT NULL,
+                    account_name TEXT NOT NULL,
+                    account_type TEXT NOT NULL,
+                    parent_account_id INTEGER,
+                    is_active BOOLEAN DEFAULT TRUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (parent_account_id) REFERENCES chart_of_accounts(id)
+                )
+            ''')
+        except Exception as e:
+            self.logger.error(f"Error creating chart_of_accounts table: {e}")
+            raise
+
         # Journal entries
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS journal_entries (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                account_id INTEGER NOT NULL,
-                created_by INTEGER NOT NULL,
-                entry_date TIMESTAMP NOT NULL,
-                description TEXT NOT NULL,
-                reference_number TEXT,
-                debit_amount DECIMAL(15,2) DEFAULT 0.00,
-                credit_amount DECIMAL(15,2) DEFAULT 0.00,
-                status TEXT DEFAULT 'draft',
-                is_posted BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (account_id) REFERENCES chart_of_accounts(id),
-                FOREIGN KEY (created_by) REFERENCES users(id)
-            )
-        ''')
-        
+        try:
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS journal_entries (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    account_id INTEGER NOT NULL,
+                    created_by INTEGER NOT NULL,
+                    entry_date TIMESTAMP NOT NULL,
+                    description TEXT NOT NULL,
+                    reference_number TEXT,
+                    debit_amount DECIMAL(15,2) DEFAULT 0.00,
+                    credit_amount DECIMAL(15,2) DEFAULT 0.00,
+                    status TEXT DEFAULT 'draft',
+                    is_posted BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (account_id) REFERENCES chart_of_accounts(id),
+                    FOREIGN KEY (created_by) REFERENCES users(id)
+                )
+            ''')
+        except Exception as e:
+            self.logger.error(f"Error creating journal_entries table: {e}")
+            raise
+
+
         self.logger.info("✅ Development schema created")
-    
+
     def _insert_production_data(self, cursor):
         """Insert production default data"""
-        
+
         # Default admin user for production
-        cursor.execute('''
-            INSERT INTO users (username, email, password_hash, first_name, last_name, role)
-            VALUES ('admin', 'admin@fai-accountant.com', 'pbkdf2:sha256:600000$production', 'System', 'Administrator', 'admin')
-            ON CONFLICT (email) DO NOTHING
-        ''')
-        
+        try:
+            cursor.execute('''
+                INSERT INTO users (username, email, password_hash, first_name, last_name, role)
+                VALUES ('admin', 'admin@fai-accountant.com', 'pbkdf2:sha256:600000$production', 'System', 'Administrator', 'admin')
+                ON CONFLICT (email) DO NOTHING
+            ''')
+        except Exception as e:
+            self.logger.error(f"Error inserting default admin user: {e}")
+            raise
+
         # Standard chart of accounts
         accounts = [
             ('1000', 'Assets', 'asset'),
@@ -313,31 +379,43 @@ class ProductionDatabaseSetup:
             ('5000', 'Expenses', 'expense'),
             ('5100', 'Operating Expenses', 'expense')
         ]
-        
+
         for account_code, account_name, account_type in accounts:
-            cursor.execute('''
-                INSERT INTO chart_of_accounts (account_code, account_name, account_type)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (account_code) DO NOTHING
-            ''', (account_code, account_name, account_type))
-        
+            try:
+                cursor.execute('''
+                    INSERT INTO chart_of_accounts (account_code, account_name, account_type)
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT (account_code) DO NOTHING
+                ''', (account_code, account_name, account_type))
+            except Exception as e:
+                self.logger.error(f"Error inserting account {account_code}: {e}")
+                raise
+
         self.logger.info("✅ Production data inserted")
-    
+
     def _insert_development_data(self, cursor):
         """Insert development test data"""
-        
+
         # Development admin user
-        cursor.execute('''
-            INSERT OR IGNORE INTO users (username, email, password_hash, first_name, last_name, role)
-            VALUES ('admin', 'admin@fai-accountant.com', 'pbkdf2:sha256:260000$development', 'Admin', 'User', 'admin')
-        ''')
-        
+        try:
+            cursor.execute('''
+                INSERT OR IGNORE INTO users (username, email, password_hash, first_name, last_name, role)
+                VALUES ('admin', 'admin@fai-accountant.com', 'pbkdf2:sha256:260000$development', 'Admin', 'User', 'admin')
+            ''')
+        except Exception as e:
+            self.logger.error(f"Error inserting development admin user: {e}")
+            raise
+
         # Test company
-        cursor.execute('''
-            INSERT OR IGNORE INTO companies (name, registration_number, owner_user_id)
-            VALUES ('F-AI Test Company', 'TEST123456', 1)
-        ''')
-        
+        try:
+            cursor.execute('''
+                INSERT OR IGNORE INTO companies (name, registration_number, owner_user_id)
+                VALUES ('F-AI Test Company', 'TEST123456', 1)
+            ''')
+        except Exception as e:
+            self.logger.error(f"Error inserting test company: {e}")
+            raise
+
         # Basic chart of accounts
         accounts = [
             ('1000', 'Assets', 'asset'),
@@ -348,19 +426,23 @@ class ProductionDatabaseSetup:
             ('4000', 'Revenue', 'revenue'),
             ('5000', 'Expenses', 'expense')
         ]
-        
+
         for account_code, account_name, account_type in accounts:
-            cursor.execute('''
-                INSERT OR IGNORE INTO chart_of_accounts (account_code, account_name, account_type)
-                VALUES (?, ?, ?)
-            ''', (account_code, account_name, account_type))
-        
+            try:
+                cursor.execute('''
+                    INSERT OR IGNORE INTO chart_of_accounts (account_code, account_name, account_type)
+                    VALUES (?, ?, ?)
+                ''', (account_code, account_name, account_type))
+            except Exception as e:
+                self.logger.error(f"Error inserting development account {account_code}: {e}")
+                raise
+
         self.logger.info("✅ Development data inserted")
-    
+
     def run_setup(self):
         """Run appropriate setup based on environment"""
         env = os.environ.get('FLASK_ENV', 'production')
-        
+
         if env == 'production':
             return self.setup_postgresql_production()
         else:
@@ -369,18 +451,18 @@ class ProductionDatabaseSetup:
 def main():
     """Main setup function"""
     logging.basicConfig(level=logging.INFO)
-    
+
     setup = ProductionDatabaseSetup()
-    
+
     if len(sys.argv) > 1:
         command = sys.argv[1]
         if command == 'production':
             os.environ['FLASK_ENV'] = 'production'
         elif command == 'development':
             os.environ['FLASK_ENV'] = 'development'
-    
+
     success = setup.run_setup()
-    
+
     if success:
         print("✅ Database setup completed successfully")
         return 0
