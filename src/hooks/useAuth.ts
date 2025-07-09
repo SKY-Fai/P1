@@ -6,7 +6,7 @@ import { apiClient, endpoints } from '@/lib/api'
 import { User, AuthState } from '@/types'
 
 interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<void>
+  login: (credentials: { username: string; password: string }) => Promise<boolean>
   logout: () => Promise<void>
   register: (data: { name: string; email: string; password: string }) => Promise<void>
   updateUser: (userData: Partial<User>) => void
@@ -49,11 +49,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const login = async (email: string, password: string) => {
+  const login = async (credentials: { username: string; password: string }) => {
     try {
       const response = await apiClient.post<{ user: User; token: string }>(endpoints.auth.login, {
-        email,
-        password,
+        username: credentials.username,
+        password: credentials.password,
       })
 
       localStorage.setItem('authToken', response.data.token)
@@ -62,8 +62,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: true,
         isLoading: false,
       })
+      return true
     } catch (error) {
-      throw error
+      return false
     }
   }
 

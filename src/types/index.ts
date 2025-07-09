@@ -137,3 +137,18 @@ export interface NavItem {
   requiresAuth?: boolean
   roles?: string[]
 }
+export interface User {
+  id: string
+  username: string
+  email: string
+  firstName: string
+  lastName: string
+  role: string
+  isActive: boolean
+}
+
+export interface AuthState {
+  user: User | null
+  isAuthenticated: boolean
+  isLoading: boolean
+}
