@@ -13,7 +13,6 @@ defaultBucketID = "fai-accountant-storage"
 [[ports]]
 localPort = 5000
 externalPort = 80
-exposeLocalhost = true
 
 [env]
 PYTHONPATH = "$REPL_HOME"
