@@ -1,37 +1,21 @@
+'use client';
 
-'use client'
-
-import { useAuth } from './providers'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
-import Dashboard from '@/components/Dashboard'
-import LoginForm from '@/components/LoginForm'
+import React from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import LoginForm from '@/components/LoginForm';
+import Dashboard from '@/components/Dashboard';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export default function Home() {
-  const { user, loading } = useAuth()
-  const router = useRouter()
+  const { isAuthenticated, isLoading } = useAuth();
 
-  useEffect(() => {
-    if (!loading && user) {
-      // User is authenticated, stay on dashboard
-    } else if (!loading && !user) {
-      // User is not authenticated, show login
-    }
-  }, [user, loading, router])
-
-  if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="spinner-border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    )
+  if (isLoading) {
+    return <LoadingSpinner />;
   }
 
-  if (!user) {
-    return <LoginForm />
+  if (!isAuthenticated) {
+    return <LoginForm />;
   }
 
-  return <Dashboard />
+  return <Dashboard />;
 }

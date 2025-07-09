@@ -1,20 +1,20 @@
 
-import 'bootstrap/dist/css/bootstrap.min.css'
-import './globals.css'
-import { Inter } from 'next/font/google'
-import { Providers } from './providers'
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { Providers } from './providers';
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'] });
 
-export const metadata = {
-  title: 'F-AI Accountant - Professional Accounting Software',
-  description: 'Comprehensive AI-powered accounting solution with automated bookkeeping, bank reconciliation, and financial reporting',
-}
+export const metadata: Metadata = {
+  title: 'F-AI Accountant',
+  description: 'Advanced AI-powered accounting solution',
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
@@ -24,5 +24,5 @@ export default function RootLayout({
         </Providers>
       </body>
     </html>
-  )
+  );
 }

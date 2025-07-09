@@ -1,23 +1,22 @@
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Production optimizations
-  poweredByHeader: false,
-  compress: true,
-  
-  // API rewrites for Flask backend
+  experimental: {
+    optimizeCss: true,
+  },
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
+    BACKEND_URL: process.env.BACKEND_URL || 'http://0.0.0.0:5001',
+  },
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: process.env.NODE_ENV === 'production' 
-          ? 'https://your-flask-backend.replit.app/api/:path*'
-          : 'http://0.0.0.0:5001/api/:path*',
+        destination: 'http://localhost:5000/api/:path*',
       },
       {
         source: '/auth/:path*',
         destination: process.env.NODE_ENV === 'production'
-          ? 'https://your-flask-backend.replit.app/auth/:path*' 
+          ? 'https://your-flask-backend.replit.app/auth/:path*'
           : 'http://0.0.0.0:5001/auth/:path*',
       },
       {
@@ -26,9 +25,17 @@ const nextConfig = {
           ? 'https://your-flask-backend.replit.app/admin/:path*'
           : 'http://0.0.0.0:5001/admin/:path*',
       }
-    ]
+    ];
   },
-
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+    // Production optimizations
+    poweredByHeader: false,
+    compress: true,
   // Headers for security and performance
   async headers() {
     return [
@@ -61,20 +68,8 @@ const nextConfig = {
     domains: ['localhost', '*.replit.app', '*.replit.dev'],
     formats: ['image/webp', 'image/avif'],
   },
-
-  // Experimental features
-  experimental: {
-    optimizeCss: true,
-    optimizePackageImports: ['react-bootstrap', 'bootstrap'],
-  },
-
   // Output configuration for static export if needed
   output: 'standalone',
-  
-  // Environment variables
-  env: {
-    BACKEND_URL: process.env.BACKEND_URL || 'http://0.0.0.0:5001',
-  }
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

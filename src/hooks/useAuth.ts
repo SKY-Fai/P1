@@ -1,129 +1,199 @@
 
-'use client'
+'use client';
 
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react'
-import { apiClient, endpoints } from '@/lib/api'
-import { User, AuthState } from '@/types'
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-interface AuthContextType extends AuthState {
-  login: (credentials: { username: string; password: string }) => Promise<boolean>
-  logout: () => Promise<void>
-  register: (data: { name: string; email: string; password: string }) => Promise<void>
-  updateUser: (userData: Partial<User>) => void
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+}
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+interface AuthContextType extends AuthState {
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  register: (email: string, password: string, name: string) => Promise<boolean>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     isAuthenticated: false,
     isLoading: true,
-  })
+  });
 
   useEffect(() => {
-    checkAuthStatus()
-  }, [])
-
-  const checkAuthStatus = async () => {
-    try {
-      const token = localStorage.getItem('authToken')
-      if (!token) {
-        setAuthState(prev => ({ ...prev, isLoading: false }))
-        return
+    // Check for existing session on mount
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          // Validate token with backend
+          const response = await fetch('/api/auth/validate', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setAuthState({
+              user: userData.user,
+              isAuthenticated: true,
+              isLoading: false,
+            });
+          } else {
+            localStorage.removeItem('auth_token');
+            setAuthState({
+              user: null,
+              isAuthenticated: false,
+              isLoading: false,
+            });
+          }
+        } else {
+          setAuthState({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        setAuthState({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
       }
+    };
 
-      const response = await apiClient.get<User>(endpoints.auth.profile)
-      setAuthState({
-        user: response.data,
-        isAuthenticated: true,
-        isLoading: false,
-      })
+    checkAuth();
+  }, []);
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      setAuthState(prev => ({ ...prev, isLoading: true }));
+      
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('auth_token', data.token);
+        
+        setAuthState({
+          user: data.user,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+        
+        return true;
+      } else {
+        setAuthState({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
+        return false;
+      }
     } catch (error) {
-      localStorage.removeItem('authToken')
+      console.error('Login failed:', error);
       setAuthState({
         user: null,
         isAuthenticated: false,
         isLoading: false,
-      })
+      });
+      return false;
     }
-  }
+  };
 
-  const login = async (credentials: { username: string; password: string }) => {
+  const logout = () => {
+    localStorage.removeItem('auth_token');
+    setAuthState({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+    });
+  };
+
+  const register = async (email: string, password: string, name: string): Promise<boolean> => {
     try {
-      const response = await apiClient.post<{ user: User; token: string }>(endpoints.auth.login, {
-        username: credentials.username,
-        password: credentials.password,
-      })
+      setAuthState(prev => ({ ...prev, isLoading: true }));
+      
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, name }),
+      });
 
-      localStorage.setItem('authToken', response.data.token)
-      setAuthState({
-        user: response.data.user,
-        isAuthenticated: true,
-        isLoading: false,
-      })
-      return true
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('auth_token', data.token);
+        
+        setAuthState({
+          user: data.user,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+        
+        return true;
+      } else {
+        setAuthState({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
+        return false;
+      }
     } catch (error) {
-      return false
-    }
-  }
-
-  const logout = async () => {
-    try {
-      await apiClient.post(endpoints.auth.logout)
-    } catch (error) {
-      // Handle logout error if needed
-    } finally {
-      localStorage.removeItem('authToken')
+      console.error('Registration failed:', error);
       setAuthState({
         user: null,
         isAuthenticated: false,
         isLoading: false,
-      })
+      });
+      return false;
     }
-  }
+  };
 
-  const register = async (data: { name: string; email: string; password: string }) => {
-    try {
-      const response = await apiClient.post<{ user: User; token: string }>(endpoints.auth.register, data)
-
-      localStorage.setItem('authToken', response.data.token)
-      setAuthState({
-        user: response.data.user,
-        isAuthenticated: true,
-        isLoading: false,
-      })
-    } catch (error) {
-      throw error
-    }
-  }
-
-  const updateUser = (userData: Partial<User>) => {
-    setAuthState(prev => ({
-      ...prev,
-      user: prev.user ? { ...prev.user, ...userData } : null,
-    }))
-  }
+  const contextValue: AuthContextType = {
+    ...authState,
+    login,
+    logout,
+    register,
+  };
 
   return (
-    <AuthContext.Provider
-      value={{
-        ...authState,
-        login,
-        logout,
-        register,
-        updateUser,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext)
+export function useAuth(): AuthContextType {
+  const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error('useAuth must be used within an AuthProvider');
   }
-  return context
+  return context;
 }
