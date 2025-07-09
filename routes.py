@@ -2860,21 +2860,66 @@ def api_suggest_account_mapping():
 
 @main_bp.route('/api/log-error', methods=['POST'])
 def api_log_error():
-    """Handle frontend error logging"""
+    """Handle frontend error logging with enhanced logging system"""
     try:
         data = request.get_json()
         error_message = data.get('message', 'Unknown error')
         error_details = data.get('details', {})
+        error_stack = data.get('stack', '')
+        error_url = data.get('url', '')
+        user_agent = request.headers.get('User-Agent', 'Unknown')
+        ip_address = request.remote_addr or 'Unknown'
         
-        # Log the error (you can enhance this with proper logging)
-        print(f"Frontend Error: {error_message}")
+        # Enhanced logging with proper logger
+        import logging
+        logger = logging.getLogger('frontend_errors')
+        
+        # Create detailed error information
+        error_info = {
+            'message': error_message,
+            'details': error_details,
+            'stack': error_stack,
+            'url': error_url,
+            'user_agent': user_agent,
+            'ip_address': ip_address,
+            'timestamp': datetime.now().isoformat(),
+            'user_id': current_user.id if current_user and current_user.is_authenticated else 'anonymous'
+        }
+        
+        # Log to application logger
+        logger.error(f"Frontend Error: {error_message}")
+        logger.error(f"Error Details: {json.dumps(error_info, indent=2)}")
+        
+        # Also print for console visibility
+        print(f"[{datetime.now().isoformat()}] Frontend Error: {error_message}")
         if error_details:
             print(f"Error Details: {error_details}")
+        if error_stack:
+            print(f"Stack Trace: {error_stack}")
         
-        return jsonify({'status': 'logged'}), 200
+        # Save to error log file
+        try:
+            os.makedirs('logs', exist_ok=True)
+            error_log_file = os.path.join('logs', 'frontend_errors.log')
+            with open(error_log_file, 'a', encoding='utf-8') as f:
+                f.write(f"{datetime.now().isoformat()} - {json.dumps(error_info)}\n")
+        except Exception as file_error:
+            logger.warning(f"Could not write to error log file: {file_error}")
+        
+        return jsonify({
+            'status': 'logged',
+            'timestamp': datetime.now().isoformat(),
+            'error_id': f"FE_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(error_message) % 10000}"
+        }), 200
+        
     except Exception as e:
+        logging.error(f"Error in error logging endpoint: {str(e)}")
         print(f"Error logging frontend error: {str(e)}")
-        return jsonify({'status': 'error'}), 500
+        return jsonify({
+            'status': 'error',
+            'message': 'Failed to log error',
+            'timestamp': datetime.now().isoformat()
+        }), 500
 
 @main_bp.route('/api/bank-reconciliation/manual-map', methods=['POST'])
 @login_required
