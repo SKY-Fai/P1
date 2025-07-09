@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_login import LoginManager, login_required, current_user
-from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash
 import os
 import logging
@@ -75,7 +74,7 @@ if __name__ == '__main__':
         logger.info(f"Debug mode: {app.config.get('DEBUG', False)}")
 
         # Run the application
-        app.run(host='0.0.0.0', port=5000, debug=True)
+        app.run(host='0.0.0.0', port=5001, debug=True)
 
     except Exception as e:
         logger.error(f"Failed to start application: {str(e)}")
