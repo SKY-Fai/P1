@@ -11,7 +11,7 @@ import json
 from app import create_app, db
 from models import User, Company, UserCompanyAccess, AuditLog
 from auth import auth_bp
-from routes import main_bp  
+from routes import main_bp
 from admin_routes import admin_bp
 from config import Config
 
