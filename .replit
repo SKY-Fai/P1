@@ -34,7 +34,7 @@ RETENTION_DAYS = "2555"
 ENCRYPTION_ENABLED = "true"
 
 [workflows]
-runButton = "Fixed F-AI Preview"
+runButton = "F-AI Production Ready"
 
 [[workflows.workflow]]
 name = "F-AI Accountant Server"
@@ -114,6 +114,19 @@ mode = "parallel"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 main.py"
+
+[[workflows.workflow]]
+name = "F-AI Production Ready"
+author = 44663263
+mode = "parallel"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev -- --port 3000"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"

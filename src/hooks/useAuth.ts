@@ -42,7 +42,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const token = localStorage.getItem('auth_token');
         if (token) {
           // Validate token with backend
-          const response = await fetch('/api/auth/validate', {
+          const response = await fetch('/auth/validate', {
             headers: {
               'Authorization': `Bearer ${token}`,
             },
@@ -87,7 +87,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true }));
       
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -138,7 +138,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true }));
       
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch('/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,11 +1,11 @@
 
 'use client';
 
-import React from 'react';
 import { AuthProvider } from '@/hooks/useAuth';
+import { ReactNode } from 'react';
 
 interface ProvidersProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function Providers({ children }: ProvidersProps) {

@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'F-AI Accountant',
-  description: 'Advanced AI-powered accounting solution',
+  description: 'Professional AI-powered accounting solution',
 };
 
 export default function RootLayout({

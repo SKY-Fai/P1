@@ -1,29 +1,26 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
     optimizeCss: true,
   },
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://0.0.0.0:5001',
     BACKEND_URL: process.env.BACKEND_URL || 'http://0.0.0.0:5001',
   },
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:5000/api/:path*',
+        destination: 'http://0.0.0.0:5001/api/:path*',
       },
       {
         source: '/auth/:path*',
-        destination: process.env.NODE_ENV === 'production'
-          ? 'https://your-flask-backend.replit.app/auth/:path*'
-          : 'http://0.0.0.0:5001/auth/:path*',
+        destination: 'http://0.0.0.0:5001/auth/:path*',
       },
       {
         source: '/admin/:path*',
-        destination: process.env.NODE_ENV === 'production'
-          ? 'https://your-flask-backend.replit.app/admin/:path*'
-          : 'http://0.0.0.0:5001/admin/:path*',
+        destination: 'http://0.0.0.0:5001/admin/:path*',
       }
     ];
   },
@@ -33,10 +30,8 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
-    // Production optimizations
-    poweredByHeader: false,
-    compress: true,
-  // Headers for security and performance
+  poweredByHeader: false,
+  compress: true,
   async headers() {
     return [
       {
@@ -62,13 +57,10 @@ const nextConfig = {
       },
     ]
   },
-
-  // Image optimization
   images: {
     domains: ['localhost', '*.replit.app', '*.replit.dev'],
     formats: ['image/webp', 'image/avif'],
   },
-  // Output configuration for static export if needed
   output: 'standalone',
 };
 
