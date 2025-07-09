@@ -4,7 +4,8 @@ modules = ["python-3.11"]
 channel = "stable-24_05"
 
 [deployment]
-run = ["sh", "-c", "python main.py"]
+run = ["sh", "-c", "npm run start"]
+build = ["sh", "-c", "npm run build"]
 
 [objectStorage]
 defaultBucketID = "fai-accountant-storage"
@@ -34,7 +35,7 @@ RETENTION_DAYS = "2555"
 ENCRYPTION_ENABLED = "true"
 
 [workflows]
-runButton = "Next.js Development"
+runButton = "Next.js Production"
 
 [[workflows.workflow]]
 name = "F-AI Accountant Server"
@@ -75,6 +76,19 @@ mode = "parallel"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 main.py"
+
+[[workflows.workflow]]
+name = "Next.js Production"
+author = 44663263
+mode = "parallel"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run build && npm run start"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"

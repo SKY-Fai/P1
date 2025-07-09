@@ -1,0 +1,52 @@
+
+{
+  "version": 2,
+  "name": "f-ai-accountant",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "https://your-flask-backend.replit.app/api/$1"
+    },
+    {
+      "src": "/auth/(.*)",
+      "dest": "https://your-flask-backend.replit.app/auth/$1"
+    },
+    {
+      "src": "/admin/(.*)",
+      "dest": "https://your-flask-backend.replit.app/admin/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+  "env": {
+    "NEXT_PUBLIC_API_URL": "https://your-flask-backend.replit.app",
+    "NODE_ENV": "production"
+  }
+}
